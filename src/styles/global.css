@@ -362,7 +362,7 @@ modal-element {
   --me-border-radius: var(--bs-border-radius);
   --me-border-width: 1px;
   --me-border-color: var(--bs-border-color);
-  --me-box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.30);
+  --me-box-shadow: none;
   --me-backdrop-background: rgba(0, 0, 0, 0.7);
   --me-backdrop-filter: blur(2px);
 }
