@@ -11,19 +11,26 @@ import "../styles/global.css";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500;600&family=Fira+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <div class="page-wrap">
-      <header class="site-nav">
-        <a href="/" class="site-nav__brand">
-          <img src="/assets/img/logomark.svg" alt="" class="site-nav__logo" width="20" height="26" />
-          <span>Logos Emblem</span>
-        </a>
-        <span class="site-nav__ver">v0.2</span>
-      </header>
+      <nav class="d2-nav">
+        <div class="d2-nav__left">
+          <a href="/" class="d2-nav__brand">
+            <img src="/assets/img/logomark.svg" alt="" class="d2-nav__logo" width="8" height="11" />
+            <span class="d2-nav__wordmark">Logos</span>
+          </a>
+        </div>
+        <div class="d2-nav__links">
+          <a href="https://logos.co" class="d2-nav__link">About</a>
+          <a href="https://logos.co/technology" class="d2-nav__link">Technology</a>
+          <a href="https://logos.co/research" class="d2-nav__link">Research</a>
+        </div>
+        <a href="https://logos.co" class="d2-nav__cta">Logos.co</a>
+      </nav>
       <main>
         <slot />
       </main>
