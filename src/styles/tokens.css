@@ -1,0 +1,76 @@
+/* ============================================================
+   Logos Emblem Generator — Design Tokens
+   Ported from logos-brand-guidelines. Same source of truth.
+   ============================================================ */
+
+:root {
+  /* ---------- BRAND COLORS ---------- */
+  --c-ink:        #152521;
+  --c-paper:      #f5f5ef;
+  --c-white:      #ffffff;
+  --c-black:      #000000;
+
+  --c-signal:     #ffd328;
+  --c-fog:        #dbddd7;
+  --c-slate:      #475651;
+  --c-grey:       #848e88;
+  --c-tan:        #a18863;
+  --c-sand:       #e2e0c9;
+  --c-moss:       #616e69;
+  --c-sky:        #c6ebf7;
+  --c-steel:      #5f797c;
+  --c-rust:       #6d3d30;
+  --c-plum:       #48373f;
+  --c-forest:     #0d2b2d;
+
+  /* ---------- SEMANTIC ALIASES ---------- */
+  --bg:           var(--c-paper);
+  --bg-deep:      var(--c-ink);
+  --fg:           var(--c-ink);
+  --fg-muted:     var(--c-slate);
+  --fg-subtle:    var(--c-grey);
+  --fg-accent:    var(--c-steel);
+  --fg-paper:     var(--c-paper);
+
+  --rule:         #d6d6ce;
+  --rule-strong:  #b8bdb8;
+  --rule-deep:    rgba(245, 245, 239, 0.16);
+
+  /* ---------- TYPE FAMILIES ---------- */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans:    "Public Sans", system-ui, -apple-system, sans-serif;
+  --font-mono:    "Fira Code", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ---------- TYPE SIZES ---------- */
+  --fs-display:   clamp(56px, 9vw, 132px);
+  --fs-h1:        clamp(40px, 5vw, 88px);
+  --fs-h2:        clamp(28px, 3.2vw, 44px);
+  --fs-h3:        24px;
+  --fs-h4:        18px;
+  --fs-body-l:    18px;
+  --fs-body:      16px;
+  --fs-body-s:    14px;
+  --fs-mono:      11px;
+  --fs-mono-s:    10px;
+
+  --lh-tight:     0.98;
+  --lh-snug:      1.15;
+  --lh-normal:    1.45;
+  --lh-loose:     1.6;
+
+  /* ---------- SPACING ---------- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  /* ---------- LAYOUT ---------- */
+  --page-pad-x:   clamp(20px, 3.5vw, 48px);
+  --page-pad-y:   clamp(20px, 3vw, 40px);
+  --col-gap:      clamp(16px, 2vw, 32px);
+
+  /* ---------- MOTION ---------- */
+  --dur-1:        180ms;
+  --dur-2:        360ms;
+  --dur-3:        720ms;
+  --ease-out:     cubic-bezier(.2, .7, .2, 1);
+  --ease-in-out:  cubic-bezier(.6, .04, .2, 1);
+}

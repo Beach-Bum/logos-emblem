@@ -1,0 +1,17 @@
+---
+import Shell from "../layouts/Shell.astro";
+import EmblemGenerator from "../components/EmblemGenerator.tsx";
+---
+<Shell>
+  <section style="padding: var(--page-pad-y) var(--page-pad-x);">
+    <p class="bg-mono" style="margin: 0 0 12px;">/emblem</p>
+    <h1 style="font-family: var(--font-display); font-weight: 400; font-size: var(--fs-h1); line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 24px; max-width: 22ch;">
+      Memes shape reality, emblems define identity.
+    </h1>
+    <p style="font-size: var(--fs-body-l); line-height: 1.5; color: var(--fg-muted); max-width: 56ch; margin: 0 0 32px;">
+      Pick or upload an image, add text, apply filters, overlay the lambda. Downloads as PNG.
+    </p>
+  </section>
+
+  <EmblemGenerator client:load />
+</Shell>
