@@ -35,17 +35,24 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding-top: 42px;
+  padding-top: 0;
   gap: 93px;
 }
 
-/* ---- Navigation ---- */
+/* ---- Navigation — sticky blur ---- */
 .site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0 48px;
+  padding: 14px 48px;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(1.1) blur(10px);
+  -webkit-backdrop-filter: saturate(1.1) blur(10px);
+  border-bottom: 1px solid var(--rule);
   font-family: var(--font-mono);
   font-size: var(--fs-mono);
   font-weight: 500;
@@ -68,7 +75,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
 /* ---- Hero ---- */
 .hero {
   width: 100%;
-  padding: 0 48px;
+  padding: 42px 48px 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -83,11 +90,12 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
 }
 .hero__title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(48px, 6vw, 88px);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
+  font-weight: 400;
+  font-size: clamp(40px, 5vw, 88px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
   margin: 0;
+  max-width: 22ch;
   color: var(--fg);
 }
 .hero__desc {
@@ -120,7 +128,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   border: 1px solid var(--rule);
   background: var(--bg);
   position: sticky;
-  top: 24px;
+  top: 60px;
 }
 
 .gen__field { display: flex; flex-direction: column; gap: 6px; }
@@ -197,7 +205,8 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   position: relative;
   overflow: hidden;
 }
-.gen__canvas-wrap canvas { display: block; width: 100%; height: auto; }
+.gen__canvas-wrap canvas,
+.gen__canvas-wrap svg { display: block; width: 100%; height: auto; }
 
 /* ---- Image library grid ---- */
 .gen__library {
@@ -286,22 +295,28 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
    ============================================================ */
 @media (max-width: 960px) {
   .page-wrap {
-    padding-top: 24px;
     gap: 48px;
   }
-  .site-nav,
-  .hero,
-  .gen,
-  .gen__library {
+  .site-nav {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .hero {
     padding-left: 20px;
     padding-right: 20px;
   }
   .gen {
     grid-template-columns: 1fr;
     gap: 32px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
   .gen__controls {
     position: static;
+  }
+  .gen__library {
+    padding-left: 20px;
+    padding-right: 20px;
   }
   .hero__title {
     font-size: clamp(36px, 8vw, 56px);

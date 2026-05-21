@@ -8,6 +8,12 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
+/* ── Logomark path (from /assets/img/logomark.svg, viewBox 0 0 20 26) ── */
+const LOGOMARK_PATH =
+  "M14.6386 26C13.728 26 12.945 25.7854 12.2881 25.3549C11.6312 24.9244 11.1344 24.2467 10.7962 23.3233C10.5841 22.7003 10.4359 21.9368 10.3513 21.0328C10.2668 20.1302 10.2134 19.1833 10.1926 18.1948C10.1718 17.1842 10.1497 16.2061 10.1289 15.2592C10.1289 15.0017 10.0651 14.8716 9.93897 14.8716C9.83361 14.8716 9.72695 14.9575 9.62159 15.1292C9.21967 15.8822 8.74359 16.742 8.19208 17.7097C7.66268 18.6773 7.13328 19.645 6.60388 20.6127C6.07447 21.5804 5.5984 22.4518 5.17436 23.2257C4.77243 23.9788 4.48627 24.5264 4.31717 24.871C4.10515 25.3445 3.76696 25.6449 3.3013 25.7737C2.85644 25.9246 2.29582 25.9571 1.61814 25.8699C0.940452 25.7841 0.464381 25.5149 0.188624 25.0635C-0.107945 24.5901 -0.0546142 24.0958 0.347315 23.5795C0.623072 23.2348 1.01459 22.7198 1.52188 22.0317C2.03047 21.3216 2.6015 20.5269 3.23626 19.645C3.87102 18.7424 4.51749 17.8176 5.17306 16.8707C5.85075 15.9031 6.48551 14.9783 7.07865 14.0964C7.67178 13.1938 8.16867 12.4082 8.5706 11.7423C8.99464 11.0542 9.26909 10.5483 9.39657 10.2257C9.52404 9.92526 9.66062 9.591 9.8089 9.22551C9.95719 8.86003 10.0313 8.48414 10.0313 8.09655C10.0313 6.67754 9.89345 5.61231 9.61899 4.90345C9.36535 4.17249 9.01545 3.68864 8.5706 3.45193C8.14655 3.1944 7.68089 3.06433 7.1736 3.06433C6.79248 3.06433 6.38015 3.13977 5.9353 3.29065C5.51125 3.44152 5.2368 3.58069 5.10933 3.70945C4.87649 3.94617 4.65407 3.98909 4.44205 3.83822C4.23002 3.68734 4.16629 3.44022 4.25214 3.09685C4.48497 2.30085 4.90901 1.592 5.52296 0.967684C6.13951 0.322561 6.9967 0 8.09713 0C9.26129 0 10.1822 0.332967 10.8599 1.0002C11.5376 1.66743 12.0241 2.73137 12.3206 4.1933C12.6172 5.65523 12.7655 7.5906 12.7655 9.9994C12.7655 12.8374 12.8084 15.1071 12.893 16.8057C12.9775 18.5044 13.1154 19.7842 13.3053 20.6439C13.4952 21.4828 13.7606 22.0421 14.0987 22.3218C14.459 22.6014 14.9026 22.7406 15.432 22.7406C15.9614 22.7406 16.4167 22.6326 16.8615 22.418C17.3272 22.2034 17.7291 21.9238 18.0686 21.5791C18.2169 21.4074 18.386 21.3424 18.5772 21.3853C18.7671 21.4282 18.9154 21.5466 19.022 21.7404C19.1495 21.9121 19.1495 22.1384 19.022 22.418C18.5772 23.4078 17.9841 24.2571 17.2439 24.966C16.5246 25.654 15.6557 25.9987 14.6399 25.9987L14.6386 26Z";
+const LOGOMARK_VB_W = 20;
+const LOGOMARK_VB_H = 26;
+
 /* ── Templates / Formats ── */
 const TEMPLATES = [
   { id: "square",    label: "Social — square",    w: 1080, h: 1080 },
@@ -40,7 +46,7 @@ const LAYOUTS = [
 ] as const;
 type Layout = (typeof LAYOUTS)[number];
 
-/* ── Filters (applied to uploaded image) ── */
+/* ── Filters ── */
 type FilterId = "none" | "dither" | "grain";
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: "none", label: "None" },
@@ -85,8 +91,8 @@ type State = {
   bottomText: string;
   font: string;
   fontSize: number;
+  // Shared
   filter: FilterId;
-  // Lambda
   showLambda: boolean;
   lambdaPos: LambdaPos;
 };
@@ -138,20 +144,70 @@ function triggerDownload(url: string, filename: string) {
   a.remove();
 }
 
-/* ── SVG Lambda component (used in poster/stacked/centered/split) ── */
-function LambdaGlyph({ x, y, size, color }: { x: number; y: number; size: number; color: string }) {
+/* ── SVG Logomark component (scales the path to target size) ── */
+function LogomarkSVG({ x, y, height, color }: { x: number; y: number; height: number; color: string }) {
+  const scale = height / LOGOMARK_VB_H;
+  const w = LOGOMARK_VB_W * scale;
   return (
-    <text
-      x={x} y={y}
-      fontFamily="Cormorant Garamond, Georgia, serif"
-      fontSize={size}
-      fontStyle="italic"
-      fill={color}
-      dominantBaseline="text-before-edge"
-    >
-      λ
-    </text>
+    <g transform={`translate(${x}, ${y}) scale(${scale})`}>
+      <path d={LOGOMARK_PATH} fill={color} />
+    </g>
   );
+}
+
+/* ── Draw logomark on canvas ── */
+function drawLogomarkCanvas(ctx: CanvasRenderingContext2D, x: number, y: number, height: number, color: string) {
+  const scale = height / LOGOMARK_VB_H;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  const path = new Path2D(LOGOMARK_PATH);
+  ctx.fillStyle = color;
+  ctx.fill(path);
+  ctx.restore();
+}
+
+/* ── Dither (Floyd-Steinberg) applied to canvas imageData ── */
+function applyDither(ctx: CanvasRenderingContext2D, cw: number, ch: number) {
+  const imageData = ctx.getImageData(0, 0, cw, ch);
+  const d = imageData.data;
+  const gray = new Float32Array(cw * ch);
+  for (let i = 0; i < gray.length; i++) {
+    gray[i] = d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114;
+  }
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const idx = y * cw + x;
+      const old = gray[idx];
+      const val = old > 127 ? 255 : 0;
+      gray[idx] = val;
+      const err = old - val;
+      if (x + 1 < cw) gray[idx + 1] += err * 7 / 16;
+      if (y + 1 < ch) {
+        if (x > 0) gray[(y + 1) * cw + x - 1] += err * 3 / 16;
+        gray[(y + 1) * cw + x] += err * 5 / 16;
+        if (x + 1 < cw) gray[(y + 1) * cw + x + 1] += err * 1 / 16;
+      }
+    }
+  }
+  for (let i = 0; i < gray.length; i++) {
+    const v = Math.max(0, Math.min(255, gray[i]));
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+/* ── Grain applied to canvas imageData ── */
+function applyGrain(ctx: CanvasRenderingContext2D, cw: number, ch: number) {
+  const imageData = ctx.getImageData(0, 0, cw, ch);
+  const d = imageData.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 80;
+    d[i] = Math.max(0, Math.min(255, d[i] + noise));
+    d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + noise));
+    d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + noise));
+  }
+  ctx.putImageData(imageData, 0, 0);
 }
 
 /* ============================================================
@@ -177,7 +233,7 @@ export default function EmblemGenerator() {
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
-      setS((prev) => ({ ...prev, imageSrc: url, layout: LAYOUTS[3] })); // auto-switch to meme
+      setS((prev) => ({ ...prev, imageSrc: url, layout: LAYOUTS[3] }));
     };
     img.src = url;
   }, []);
@@ -191,47 +247,6 @@ export default function EmblemGenerator() {
     };
     img.src = src;
   }, []);
-
-  /* ── Filter application (meme canvas) ── */
-  const applyFilter = useCallback((ctx: CanvasRenderingContext2D, cw: number, ch: number) => {
-    if (s.filter === "none") return;
-    const imageData = ctx.getImageData(0, 0, cw, ch);
-    const d = imageData.data;
-
-    if (s.filter === "dither") {
-      const gray = new Float32Array(cw * ch);
-      for (let i = 0; i < gray.length; i++) {
-        gray[i] = d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114;
-      }
-      for (let y = 0; y < ch; y++) {
-        for (let x = 0; x < cw; x++) {
-          const idx = y * cw + x;
-          const old = gray[idx];
-          const val = old > 127 ? 255 : 0;
-          gray[idx] = val;
-          const err = old - val;
-          if (x + 1 < cw) gray[idx + 1] += err * 7 / 16;
-          if (y + 1 < ch) {
-            if (x > 0) gray[(y + 1) * cw + x - 1] += err * 3 / 16;
-            gray[(y + 1) * cw + x] += err * 5 / 16;
-            if (x + 1 < cw) gray[(y + 1) * cw + x + 1] += err * 1 / 16;
-          }
-        }
-      }
-      for (let i = 0; i < gray.length; i++) {
-        const v = Math.max(0, Math.min(255, gray[i]));
-        d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
-      }
-    } else if (s.filter === "grain") {
-      for (let i = 0; i < d.length; i += 4) {
-        const noise = (Math.random() - 0.5) * 80;
-        d[i] = Math.max(0, Math.min(255, d[i] + noise));
-        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + noise));
-        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + noise));
-      }
-    }
-    ctx.putImageData(imageData, 0, 0);
-  }, [s.filter]);
 
   /* ── Render meme canvas ── */
   const renderMemeCanvas = useCallback(() => {
@@ -257,44 +272,39 @@ export default function EmblemGenerator() {
     }
 
     // Filter
-    applyFilter(ctx, w, h);
+    if (s.filter === "dither") applyDither(ctx, w, h);
+    else if (s.filter === "grain") applyGrain(ctx, w, h);
 
-    // Lambda overlay (Cormorant Garamond italic glyph)
+    // Logomark overlay
     if (s.showLambda) {
-      const lambdaSize = Math.min(w, h) * 0.06;
+      const markH = Math.min(w, h) * 0.06;
+      const markW = (LOGOMARK_VB_W / LOGOMARK_VB_H) * markH;
       const margin = Math.min(w, h) * 0.04;
       let lx: number, ly: number;
-      ctx.font = `italic ${lambdaSize}px "Cormorant Garamond", Georgia, serif`;
-      ctx.textBaseline = "top";
 
       switch (s.lambdaPos) {
         case "top-left":
           lx = margin;
           ly = margin;
-          ctx.textAlign = "left";
           break;
         case "top-right":
-          lx = w - margin;
+          lx = w - margin - markW;
           ly = margin;
-          ctx.textAlign = "right";
           break;
         case "center":
-          lx = w / 2;
-          ly = h / 2 - lambdaSize / 2;
-          ctx.textAlign = "center";
+          lx = (w - markW) / 2;
+          ly = (h - markH) / 2;
           break;
         case "bottom-right":
-          lx = w - margin;
-          ly = h - margin - lambdaSize;
-          ctx.textAlign = "right";
+          lx = w - margin - markW;
+          ly = h - margin - markH;
           break;
       }
 
       ctx.globalAlpha = 0.9;
       ctx.shadowColor = "rgba(0,0,0,0.5)";
       ctx.shadowBlur = 6;
-      ctx.fillStyle = s.theme.fg;
-      ctx.fillText("λ", lx, ly);
+      drawLogomarkCanvas(ctx, lx, ly, markH, s.theme.fg);
       ctx.shadowColor = "transparent";
       ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
@@ -352,7 +362,7 @@ export default function EmblemGenerator() {
       ctx.fillText(s.meta.toUpperCase(), 32, h - 20);
       ctx.restore();
     }
-  }, [s, w, h, isMeme, applyFilter]);
+  }, [s, w, h, isMeme]);
 
   useEffect(() => { renderMemeCanvas(); }, [renderMemeCanvas]);
 
@@ -362,13 +372,39 @@ export default function EmblemGenerator() {
     const { bg, fg, accent } = s.theme;
     const pad = Math.round(Math.min(w, h) * 0.07);
     const isSticker = s.template.id === "sticker";
+    const markH = Math.min(w, h) * 0.08;
+
+    /* SVG filter defs for grain */
+    const filterDefs = s.filter === "grain" ? (
+      <defs>
+        <filter id="grain-filter" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise" />
+          <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise" />
+          <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blended" />
+          <feComponentTransfer in="blended">
+            <feFuncR type="linear" slope="1.2" intercept="-0.1" />
+            <feFuncG type="linear" slope="1.2" intercept="-0.1" />
+            <feFuncB type="linear" slope="1.2" intercept="-0.1" />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    ) : null;
+
+    const filterAttr = s.filter === "grain" ? "url(#grain-filter)" : undefined;
 
     let body: JSX.Element;
     if (s.layout.id === "centered") {
       const size = Math.min(w, h) * 0.11;
       body = (
         <>
-          <LambdaGlyph x={w / 2 - size * 0.08} y={h / 2 - size * 1.2} size={size * 0.35} color={accent} />
+          {s.showLambda && (
+            <LogomarkSVG
+              x={w / 2 - (LOGOMARK_VB_W / LOGOMARK_VB_H) * (markH * 0.4) / 2}
+              y={h / 2 - size * 1.2}
+              height={markH * 0.4}
+              color={accent}
+            />
+          )}
           <text
             x={w / 2} y={h / 2 + size * 0.2}
             textAnchor="middle"
@@ -395,6 +431,9 @@ export default function EmblemGenerator() {
           >
             {(s.eyebrow || "EYEBROW").toUpperCase()}
           </text>
+          {s.showLambda && (
+            <LogomarkSVG x={w - pad - (LOGOMARK_VB_W / LOGOMARK_VB_H) * markH} y={pad * 0.6} height={markH} color={accent} />
+          )}
           <text
             x={pad} y={h - pad - size * 0.1}
             fontFamily="Cormorant Garamond, Georgia, serif"
@@ -411,7 +450,9 @@ export default function EmblemGenerator() {
       const size = Math.min(w, h) * 0.1;
       body = (
         <>
-          <LambdaGlyph x={pad} y={pad * 0.8} size={w * 0.08} color={accent} />
+          {s.showLambda && (
+            <LogomarkSVG x={pad} y={pad * 0.6} height={markH} color={accent} />
+          )}
           <text
             x={pad} y={pad * 2.4}
             fontFamily="Fira Code, monospace"
@@ -447,6 +488,7 @@ export default function EmblemGenerator() {
         height={h}
         style={{ display: "block", width: "100%", height: "auto", background: bg }}
       >
+        {filterDefs}
         {isSticker ? (
           <circle cx={w / 2} cy={h / 2} r={w / 2} fill={bg} />
         ) : (
@@ -455,7 +497,7 @@ export default function EmblemGenerator() {
         {isSticker && (
           <clipPath id="sticker-clip"><circle cx={w / 2} cy={h / 2} r={w / 2} /></clipPath>
         )}
-        <g clipPath={isSticker ? "url(#sticker-clip)" : undefined}>
+        <g clipPath={isSticker ? "url(#sticker-clip)" : undefined} filter={filterAttr}>
           {body}
           {/* foot meta strip */}
           <line x1={pad} y1={h - pad * 0.8} x2={w - pad} y2={h - pad * 0.8} stroke={fg} strokeOpacity={0.4} strokeWidth={1} />
@@ -479,12 +521,12 @@ export default function EmblemGenerator() {
             fill={fg}
             opacity={0.7}
           >
-            λ · LOGOS
+            LOGOS
           </text>
         </g>
       </svg>
     );
-  }, [s.template, s.theme, s.layout, s.eyebrow, s.headline, s.meta, w, h, isMeme]);
+  }, [s.template, s.theme, s.layout, s.eyebrow, s.headline, s.meta, s.showLambda, s.lambdaPos, s.filter, w, h, isMeme]);
 
   /* ── Downloads ── */
   async function downloadPNG() {
@@ -508,6 +550,10 @@ export default function EmblemGenerator() {
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(img, 0, 0, w, h);
     URL.revokeObjectURL(url);
+
+    // Apply dither filter to PNG export (can't do in SVG preview)
+    if (s.filter === "dither") applyDither(ctx, w, h);
+
     triggerDownload(canvas.toDataURL("image/png"), `logos-${s.template.id}.png`);
   }
 
@@ -539,6 +585,7 @@ export default function EmblemGenerator() {
       canvas.height = h;
       canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
+      if (s.filter === "dither") applyDither(canvas.getContext("2d")!, w, h);
     }
     try {
       const blob = await new Promise<Blob>((resolve) =>
@@ -570,7 +617,7 @@ export default function EmblemGenerator() {
       if (isMeme && canvasRef.current) {
         blob = await new Promise<Blob>((r) => canvasRef.current!.toBlob((b) => r(b!), "image/png"));
       } else {
-        return; // SVG share just opens links
+        return;
       }
       const file = new File([blob], "logos-emblem.png", { type: "image/png" });
       await navigator.share({ text: SHARE_TEXT, url: SITE_URL, files: [file] });
@@ -627,7 +674,7 @@ export default function EmblemGenerator() {
             </div>
           </Field>
 
-          {/* Image upload (shows for meme layout, but always available) */}
+          {/* Image upload */}
           <Field label="Image">
             <div
               className="gen__upload"
@@ -692,41 +739,39 @@ export default function EmblemGenerator() {
                   onChange={(e) => set("fontSize", Number(e.target.value))}
                 />
               </Field>
-              <Field label="Filter">
-                <select value={s.filter} onChange={(e) => set("filter", e.target.value as FilterId)}>
-                  {FILTERS.map((f) => (
-                    <option key={f.id} value={f.id}>{f.label}</option>
-                  ))}
-                </select>
-              </Field>
             </>
           )}
+
+          {/* Filter — available in ALL modes */}
+          <Field label="Filter">
+            <select value={s.filter} onChange={(e) => set("filter", e.target.value as FilterId)}>
+              {FILTERS.map((f) => (
+                <option key={f.id} value={f.id}>{f.label}{!isMeme && f.id === "dither" ? " (PNG export)" : ""}</option>
+              ))}
+            </select>
+          </Field>
 
           {/* Meta line */}
           <Field label="Meta line">
             <input value={s.meta} onChange={(e) => set("meta", e.target.value)} placeholder="logos.co" />
           </Field>
 
-          {/* Lambda position (meme only) */}
-          {isMeme && (
-            <>
-              <Field label="Lambda position">
-                <select value={s.lambdaPos} onChange={(e) => set("lambdaPos", e.target.value as LambdaPos)}>
-                  {LAMBDA_POSITIONS.map((p) => (
-                    <option key={p.id} value={p.id}>{p.label}</option>
-                  ))}
-                </select>
-              </Field>
-              <label className="gen__field-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={s.showLambda}
-                  onChange={(e) => set("showLambda", e.target.checked)}
-                />
-                Show lambda
-              </label>
-            </>
-          )}
+          {/* Lambda position + toggle — available in ALL modes */}
+          <Field label="Logomark position">
+            <select value={s.lambdaPos} onChange={(e) => set("lambdaPos", e.target.value as LambdaPos)}>
+              {LAMBDA_POSITIONS.map((p) => (
+                <option key={p.id} value={p.id}>{p.label}</option>
+              ))}
+            </select>
+          </Field>
+          <label className="gen__field-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <input
+              type="checkbox"
+              checked={s.showLambda}
+              onChange={(e) => set("showLambda", e.target.checked)}
+            />
+            Show logomark
+          </label>
 
           {/* Actions */}
           <div className="gen__actions">
@@ -755,7 +800,9 @@ export default function EmblemGenerator() {
           <p className="gen__help">
             {isMeme
               ? "Upload an image, add text, apply filters. Download or share."
-              : "PNG is rendered from the live SVG. For best font rendering, install Cormorant Garamond + Fira Code locally."}
+              : s.filter === "dither"
+                ? "Dither is applied on PNG/Copy export. Grain renders live in SVG preview."
+                : "PNG is rendered from the live SVG. Grain + dither filters work on all exports."}
           </p>
         </aside>
 
