@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
-/* ── Brand palette for text color picker ── */
+/* ── Brand palette ── */
 const PALETTE = [
   { name: "Paper", hex: "#f5f5ef" },
   { name: "Ink", hex: "#152521" },
@@ -16,37 +16,65 @@ const PALETTE = [
   { name: "Sand", hex: "#e2e0c9" },
 ];
 
-/* ── Filter definitions ── */
-type FilterId = "none" | "dither" | "grayscale" | "posterize" | "highcontrast" | "thermal" | "grain";
+/* ── Filters ── */
+type FilterId = "none" | "dither" | "grain";
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: "none", label: "None" },
   { id: "dither", label: "Dither" },
-  { id: "grayscale", label: "Grayscale" },
-  { id: "posterize", label: "Posterize" },
-  { id: "highcontrast", label: "Hi-Con" },
-  { id: "thermal", label: "Thermal" },
   { id: "grain", label: "Grain" },
 ];
 
-/* ── Font options ── */
+/* ── Fonts ── */
 const FONTS = [
   { id: "display", label: "Cormorant Garamond", css: '"Cormorant Garamond", Georgia, serif' },
   { id: "sans", label: "Public Sans", css: '"Public Sans", system-ui, sans-serif' },
   { id: "mono", label: "Fira Code", css: '"Fira Code", monospace' },
 ];
 
-/* ── Text position presets ── */
-type TextPosition = "top" | "bottom" | "center";
-
-/* ── Pre-populated library (placeholder — user will add images) ── */
+/* ── Library (user will populate) ── */
 const LIBRARY: string[] = [];
 
-/* ── Canvas dimensions ── */
+/* ── Canvas ── */
 const CW = 1080;
 const CH = 1080;
 
-/* ── Lambda overlay as inline SVG path ── */
-const LAMBDA_PATH = "M 20 2 L 50 98 L 80 2 L 72 2 L 50 78 L 28 2 Z";
+/* ── Vector lambda path — traced from Logos brand mark ── */
+function drawLambda(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, color: string) {
+  // Lambda drawn in a 100x140 viewbox, scaled to height h
+  const scale = h / 140;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.beginPath();
+  // Traced from the Logos lambda mark
+  ctx.moveTo(38, 0);
+  ctx.bezierCurveTo(36, 0, 34, 1, 33, 3);
+  ctx.lineTo(0, 95);
+  ctx.bezierCurveTo(-1, 98, 1, 100, 4, 100);
+  ctx.lineTo(14, 100);
+  ctx.bezierCurveTo(17, 100, 19, 98, 20, 95);
+  ctx.lineTo(44, 32);
+  ctx.lineTo(68, 95);
+  ctx.bezierCurveTo(69, 98, 71, 100, 74, 100);
+  ctx.lineTo(84, 100);
+  ctx.bezierCurveTo(87, 100, 89, 98, 88, 95);
+  // Right descender with calligraphic curve
+  ctx.lineTo(88, 95);
+  ctx.bezierCurveTo(88, 95, 92, 108, 86, 120);
+  ctx.bezierCurveTo(80, 132, 65, 138, 50, 140);
+  ctx.bezierCurveTo(48, 140, 46, 139, 46, 137);
+  ctx.lineTo(46, 130);
+  ctx.bezierCurveTo(46, 128, 48, 127, 50, 127);
+  ctx.bezierCurveTo(60, 126, 70, 122, 74, 114);
+  ctx.bezierCurveTo(78, 106, 76, 98, 76, 98);
+  ctx.lineTo(48, 22);
+  ctx.bezierCurveTo(46, 17, 44, 8, 44, 3);
+  ctx.bezierCurveTo(44, 1, 42, 0, 40, 0);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
 
 type State = {
   imageSrc: string | null;
@@ -55,9 +83,6 @@ type State = {
   font: string;
   textColor: string;
   filter: FilterId;
-  emblemScale: number;
-  emblemX: number;
-  emblemY: number;
   showEmblem: boolean;
   emblemColor: string;
   fontSize: number;
@@ -74,33 +99,58 @@ const INITIAL: State = {
   font: FONTS[0].css,
   textColor: "#f5f5ef",
   filter: "none",
-  emblemScale: 0.2,
-  emblemX: 0.5,
-  emblemY: 0.5,
   showEmblem: true,
   emblemColor: "#f5f5ef",
   fontSize: 72,
 };
+
+/* ── Social share URLs ── */
+const SITE_URL = "https://logos-emblem.vercel.app";
+const SHARE_TEXT = "Made with the Logos Emblem Generator";
+
+function shareToX() {
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SITE_URL)}`,
+    "_blank",
+  );
+}
+
+function shareToBluesky() {
+  window.open(
+    `https://bsky.app/intent/compose?text=${encodeURIComponent(`${SHARE_TEXT} ${SITE_URL}`)}`,
+    "_blank",
+  );
+}
+
+function shareToLinkedIn() {
+  window.open(
+    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`,
+    "_blank",
+  );
+}
+
+function shareToTelegram() {
+  window.open(
+    `https://t.me/share/url?url=${encodeURIComponent(SITE_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`,
+    "_blank",
+  );
+}
+
+function shareToReddit() {
+  window.open(
+    `https://reddit.com/submit?url=${encodeURIComponent(SITE_URL)}&title=${encodeURIComponent(SHARE_TEXT)}`,
+    "_blank",
+  );
+}
 
 export default function EmblemGenerator() {
   const [s, setS] = useState<State>(INITIAL);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const lambdaImgRef = useRef<HTMLImageElement | null>(null);
-  const dragRef = useRef<{ dragging: boolean; offsetX: number; offsetY: number }>({
-    dragging: false, offsetX: 0, offsetY: 0,
-  });
 
   const set = useCallback(<K extends keyof State>(k: K, v: State[K]) => {
     setS((prev) => ({ ...prev, [k]: v }));
-  }, []);
-
-  /* Load lambda image once */
-  useEffect(() => {
-    const img = new Image();
-    img.src = "/assets/img/logo-lambda.png";
-    img.onload = () => { lambdaImgRef.current = img; };
   }, []);
 
   /* ── File upload ── */
@@ -132,15 +182,7 @@ export default function EmblemGenerator() {
     const d = imageData.data;
 
     switch (s.filter) {
-      case "grayscale":
-        for (let i = 0; i < d.length; i += 4) {
-          const avg = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-          d[i] = d[i + 1] = d[i + 2] = avg;
-        }
-        break;
-
       case "dither": {
-        // Floyd-Steinberg dithering
         const gray = new Float32Array(CW * CH);
         for (let i = 0; i < gray.length; i++) {
           gray[i] = d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114;
@@ -166,36 +208,6 @@ export default function EmblemGenerator() {
         }
         break;
       }
-
-      case "posterize": {
-        const levels = 4;
-        const step = 255 / (levels - 1);
-        for (let i = 0; i < d.length; i += 4) {
-          d[i] = Math.round(d[i] / step) * step;
-          d[i + 1] = Math.round(d[i + 1] / step) * step;
-          d[i + 2] = Math.round(d[i + 2] / step) * step;
-        }
-        break;
-      }
-
-      case "highcontrast":
-        for (let i = 0; i < d.length; i += 4) {
-          d[i] = d[i] > 127 ? 255 : 0;
-          d[i + 1] = d[i + 1] > 127 ? 255 : 0;
-          d[i + 2] = d[i + 2] > 127 ? 255 : 0;
-        }
-        break;
-
-      case "thermal":
-        for (let i = 0; i < d.length; i += 4) {
-          const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-          const t = avg / 255;
-          // Logos thermal: forest -> rust -> signal
-          d[i] = Math.round(13 + t * (255 - 13));     // R: forest to signal
-          d[i + 1] = Math.round(43 + t * (211 - 43));  // G
-          d[i + 2] = Math.round(45 + t * (40 - 45));   // B: cool to warm
-        }
-        break;
 
       case "grain": {
         for (let i = 0; i < d.length; i += 4) {
@@ -234,28 +246,19 @@ export default function EmblemGenerator() {
     // Filter
     applyFilter(ctx);
 
-    // Lambda emblem overlay — tint via offscreen canvas
-    if (s.showEmblem && lambdaImgRef.current) {
-      const size = CW * s.emblemScale;
-      const x = s.emblemX * CW - size / 2;
-      const y = s.emblemY * CH - size / 2;
-
-      // Tint on offscreen canvas so source-atop doesn't affect main canvas
-      const off = document.createElement("canvas");
-      off.width = Math.ceil(size);
-      off.height = Math.ceil(size);
-      const oc = off.getContext("2d")!;
-      oc.drawImage(lambdaImgRef.current, 0, 0, off.width, off.height);
-      oc.globalCompositeOperation = "source-atop";
-      oc.fillStyle = s.emblemColor;
-      oc.fillRect(0, 0, off.width, off.height);
-
-      ctx.globalAlpha = 0.85;
-      ctx.drawImage(off, x, y);
+    // Lambda emblem — fixed top-right corner, vector-drawn
+    if (s.showEmblem) {
+      const emblemHeight = 64;
+      const margin = 32;
+      const emblemWidth = emblemHeight * (100 / 140); // viewbox ratio
+      const ex = CW - margin - emblemWidth;
+      const ey = margin;
+      ctx.globalAlpha = 0.9;
+      drawLambda(ctx, ex, ey, emblemHeight, s.emblemColor);
       ctx.globalAlpha = 1;
     }
 
-    // Text rendering helper
+    // Text
     const drawText = (text: string, position: "top" | "bottom") => {
       if (!text) return;
       ctx.save();
@@ -264,13 +267,11 @@ export default function EmblemGenerator() {
       ctx.textAlign = "center";
       ctx.textBaseline = position === "top" ? "top" : "bottom";
 
-      // Text shadow for readability
       ctx.shadowColor = "rgba(0,0,0,0.7)";
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      // Word wrap
       const maxWidth = CW - 80;
       const words = text.split(" ");
       const lines: string[] = [];
@@ -299,45 +300,7 @@ export default function EmblemGenerator() {
     drawText(s.bottomText, "bottom");
   }, [s, applyFilter]);
 
-  /* Re-render on state change */
   useEffect(() => { render(); }, [render]);
-
-  /* ── Emblem drag on canvas ── */
-  const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return {
-      x: (e.clientX - rect.left) / rect.width,
-      y: (e.clientY - rect.top) / rect.height,
-    };
-  };
-
-  const onCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!s.showEmblem) return;
-    const pos = getCanvasPos(e);
-    const halfSize = s.emblemScale / 2;
-    if (
-      Math.abs(pos.x - s.emblemX) < halfSize &&
-      Math.abs(pos.y - s.emblemY) < halfSize
-    ) {
-      dragRef.current = {
-        dragging: true,
-        offsetX: pos.x - s.emblemX,
-        offsetY: pos.y - s.emblemY,
-      };
-    }
-  };
-
-  const onCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!dragRef.current.dragging) return;
-    const pos = getCanvasPos(e);
-    setS((prev) => ({
-      ...prev,
-      emblemX: Math.max(0, Math.min(1, pos.x - dragRef.current.offsetX)),
-      emblemY: Math.max(0, Math.min(1, pos.y - dragRef.current.offsetY)),
-    }));
-  };
-
-  const onCanvasMouseUp = () => { dragRef.current.dragging = false; };
 
   /* ── Randomizer ── */
   const randomize = () => {
@@ -346,9 +309,6 @@ export default function EmblemGenerator() {
       filter: randomChoice(FILTERS).id,
       textColor: randomChoice(PALETTE).hex,
       emblemColor: randomChoice(PALETTE).hex,
-      emblemScale: 0.1 + Math.random() * 0.35,
-      emblemX: 0.15 + Math.random() * 0.7,
-      emblemY: 0.15 + Math.random() * 0.7,
       font: randomChoice(FONTS).css,
       fontSize: 48 + Math.floor(Math.random() * 72),
       showEmblem: true,
@@ -375,17 +335,31 @@ export default function EmblemGenerator() {
       );
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
     } catch {
-      // Fallback: just download
       download();
+    }
+  };
+
+  /* ── Native share (mobile) ── */
+  const nativeShare = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !navigator.share) return;
+    try {
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((b) => resolve(b!), "image/png")
+      );
+      const file = new File([blob], "logos-emblem.png", { type: "image/png" });
+      await navigator.share({ text: SHARE_TEXT, url: SITE_URL, files: [file] });
+    } catch {
+      // User cancelled or not supported
     }
   };
 
   return (
     <>
       <div className="gen">
-        {/* ── Controls panel ── */}
+        {/* ── Controls ── */}
         <div className="gen__controls">
-          {/* Image source */}
+          {/* Image */}
           <div className="gen__field">
             <label className="gen__field-label">Image</label>
             <div
@@ -484,7 +458,7 @@ export default function EmblemGenerator() {
             </select>
           </div>
 
-          {/* Emblem toggle + controls */}
+          {/* Emblem */}
           <div className="gen__field">
             <label className="gen__field-label">
               <input
@@ -493,42 +467,25 @@ export default function EmblemGenerator() {
                 onChange={(e) => set("showEmblem", e.target.checked)}
                 style={{ marginRight: 6 }}
               />
-              Lambda emblem
+              Lambda emblem (top-right)
             </label>
           </div>
 
           {s.showEmblem && (
-            <>
-              <div className="gen__field">
-                <label className="gen__field-label">Emblem size ({Math.round(s.emblemScale * 100)}%)</label>
-                <input
-                  className="gen__range"
-                  type="range"
-                  min={0.05}
-                  max={0.6}
-                  step={0.01}
-                  value={s.emblemScale}
-                  onChange={(e) => set("emblemScale", Number(e.target.value))}
-                />
+            <div className="gen__field">
+              <label className="gen__field-label">Emblem color</label>
+              <div className="gen__swatches">
+                {PALETTE.map((c) => (
+                  <div
+                    key={`e-${c.hex}`}
+                    className={`gen__swatch${s.emblemColor === c.hex ? " is-active" : ""}`}
+                    style={{ background: c.hex, border: c.hex === "#f5f5ef" ? "1px solid #d6d6ce" : undefined }}
+                    title={c.name}
+                    onClick={() => set("emblemColor", c.hex)}
+                  />
+                ))}
               </div>
-              <div className="gen__field">
-                <label className="gen__field-label">Emblem color</label>
-                <div className="gen__swatches">
-                  {PALETTE.map((c) => (
-                    <div
-                      key={`e-${c.hex}`}
-                      className={`gen__swatch${s.emblemColor === c.hex ? " is-active" : ""}`}
-                      style={{ background: c.hex, border: c.hex === "#f5f5ef" ? "1px solid #d6d6ce" : undefined }}
-                      title={c.name}
-                      onClick={() => set("emblemColor", c.hex)}
-                    />
-                  ))}
-                </div>
-              </div>
-              <p style={{ fontSize: 12, color: "var(--fg-subtle)", margin: 0 }}>
-                Drag the emblem on the canvas to reposition.
-              </p>
-            </>
+            </div>
           )}
 
           {/* Actions */}
@@ -536,6 +493,33 @@ export default function EmblemGenerator() {
             <button className="gen__btn" onClick={randomize}>Mix</button>
             <button className="gen__btn gen__btn--solid" onClick={download}>Download</button>
             <button className="gen__btn" onClick={copyToClipboard}>Copy</button>
+          </div>
+
+          {/* Share */}
+          <div className="gen__field">
+            <label className="gen__field-label">Share</label>
+            <div className="gen__share">
+              <button className="gen__share-btn" onClick={shareToX} title="Share to X">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </button>
+              <button className="gen__share-btn" onClick={shareToBluesky} title="Share to Bluesky">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.862 14.17c-.122.36-.596.586-1.186.586-.797 0-1.47-.454-2.142-1.072-.448-.412-.87-.912-1.33-.912h-.408c-.46 0-.882.5-1.33.912-.672.618-1.345 1.072-2.142 1.072-.59 0-1.064-.226-1.186-.587-.21-.624.36-1.494 1.386-2.482.684-.66 1.512-1.29 2.222-1.71.252-.15.492-.278.694-.378a4.35 4.35 0 0 1-.694-.378c-.71-.42-1.538-1.05-2.222-1.71-1.026-.988-1.596-1.858-1.386-2.482.122-.36.596-.587 1.186-.587.797 0 1.47.454 2.142 1.072.448.413.87.912 1.33.912h.408c.46 0 .882-.5 1.33-.912C13.006 7.454 13.679 7 14.476 7c.59 0 1.064.227 1.186.587.21.624-.36 1.494-1.386 2.482-.684.66-1.512 1.29-2.222 1.71a6.1 6.1 0 0 1-.694.378c.202.1.442.228.694.378.71.42 1.538 1.05 2.222 1.71 1.026.988 1.596 1.858 1.386 2.482z"/></svg>
+              </button>
+              <button className="gen__share-btn" onClick={shareToLinkedIn} title="Share to LinkedIn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              </button>
+              <button className="gen__share-btn" onClick={shareToTelegram} title="Share to Telegram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              </button>
+              <button className="gen__share-btn" onClick={shareToReddit} title="Share to Reddit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
+              </button>
+              {typeof navigator !== "undefined" && navigator.share && (
+                <button className="gen__share-btn gen__share-btn--native" onClick={nativeShare} title="Share with image">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -546,11 +530,6 @@ export default function EmblemGenerator() {
               ref={canvasRef}
               width={CW}
               height={CH}
-              onMouseDown={onCanvasMouseDown}
-              onMouseMove={onCanvasMouseMove}
-              onMouseUp={onCanvasMouseUp}
-              onMouseLeave={onCanvasMouseUp}
-              style={{ cursor: s.showEmblem ? "grab" : "default" }}
             />
           </div>
         </div>

@@ -185,6 +185,19 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   cursor: pointer;
 }
 
+/* ---- share buttons ---- */
+.gen__share { display: flex; gap: 8px; flex-wrap: wrap; }
+.gen__share-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border: 1px solid var(--rule);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: background var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+}
+.gen__share-btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.gen__share-btn--native { border-style: dashed; }
+
 @media (max-width: 900px) {
   .gen { grid-template-columns: 1fr; }
   .gen__controls { position: static; }
