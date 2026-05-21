@@ -1,49 +1,79 @@
 /* ============================================================
    Logos Emblem Generator — Global styles
-   imgflip UX pattern: contained box with image LEFT, controls RIGHT
-   Logos design system: 1440px, 12px grid, Fira Code/Mono
+   Bootstrap base + Logos branding + meme-generator styles
    ============================================================ */
 
 @import "./tokens.css";
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
-
-html {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  font-size: var(--fs-body);
-  line-height: var(--lh-normal);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+/* ============================================================
+   Meme Generator core styles (from georapbox/meme-generator)
+   ============================================================ */
+:root {
+  --move-btn-width: 60px;
+  --move-btn-height: 34px;
+  --focus-ring: 0 0 0 0.2rem var(--bs-focus-ring-color);
+  --focus-ring-error: 0 0 0 0.2rem rgba(var(--bs-danger-rgb), 0.4);
+  accent-color: var(--c-ink);
+  font-size: 14px;
 }
-body { min-height: 100vh; }
 
-img { max-width: 100%; display: block; }
-a   { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; background: transparent; border: 0; cursor: pointer; padding: 0; }
+:not(:defined) {
+  display: none !important;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+a:focus-visible,
+details summary:focus-visible {
+  outline: 0;
+  border-radius: var(--bs-border-radius);
+  box-shadow: var(--focus-ring);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+details > summary {
+  margin-block-end: 0.5rem;
+}
+
+@supports (interpolate-size: allow-keywords) {
+  :root { interpolate-size: allow-keywords; }
+  details::details-content {
+    transition: height 0.2s ease, content-visibility 0.2s allow-discrete;
+    height: 0;
+    overflow: clip;
+  }
+  details[open]::details-content {
+    height: auto;
+    padding-bottom: 0.5em;
+  }
+}
+
+.container {
+  max-width: 1440px;
+}
+
 ::selection { background: var(--c-signal); color: var(--c-ink); }
 
 /* ============================================================
-   Page wrapper
+   Logos D2 Nav
    ============================================================ */
 .page-wrap {
   display: flex;
   width: 1440px;
   max-width: 100%;
-  padding-top: 42px;
+  padding-top: 0;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
   margin: 0 auto;
-  background: var(--bg);
 }
 
-/* ============================================================
-   D2 Nav
-   ============================================================ */
 .d2-nav {
   position: sticky;
   top: 0;
@@ -54,11 +84,13 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   width: 100%;
   height: 42px;
   padding: 6px 12px;
+  background: var(--c-paper);
 }
 .d2-nav__brand {
   display: flex;
   align-items: center;
   gap: 4px;
+  text-decoration: none;
 }
 .d2-nav__logo { width: 8px; height: 11px; }
 .d2-nav__wordmark {
@@ -66,6 +98,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.14px;
+  color: var(--c-ink);
 }
 .d2-nav__links { display: flex; gap: 24px; }
 .d2-nav__link {
@@ -74,27 +107,30 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   font-weight: 600;
   line-height: 1.35;
   text-transform: uppercase;
+  color: var(--c-ink);
+  text-decoration: none;
 }
 .d2-nav__link:hover { color: var(--fg-accent); }
 .d2-nav__cta {
   padding: 8px 12px;
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--c-ink);
+  color: var(--c-paper);
   border-radius: 12px;
   font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.35;
   text-transform: uppercase;
+  text-decoration: none;
 }
-.d2-nav__cta:hover { opacity: 0.85; }
+.d2-nav__cta:hover { opacity: 0.85; color: var(--c-paper); }
 
 /* ============================================================
-   Hero — minimal header
+   Hero
    ============================================================ */
 .hero {
   width: 100%;
-  padding: 0 12px;
+  padding: 24px 12px 12px;
 }
 .hero__left { display: flex; flex-direction: column; gap: 4px; }
 .hero__title {
@@ -104,6 +140,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   line-height: 1;
   letter-spacing: -1.08px;
   margin: 0;
+  color: var(--c-ink);
 }
 .hero__sub {
   font-family: "Fira Mono", monospace;
@@ -114,373 +151,397 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
 }
 
 /* ============================================================
-   Generator — imgflip contained-box layout
-   Toolbar full-width above, then Image LEFT + Panel RIGHT
+   Canvas
    ============================================================ */
-.gen {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0 12px;
+.canvas {
+  display: block;
+  max-width: 100%;
 }
 
-/* ---- Toolbar (full width, above the main area) ---- */
-.gen__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  gap: 6px;
-  border-bottom: 1px solid rgba(21, 37, 33, 0.1);
-  margin-bottom: 0;
+/* ============================================================
+   Inputs
+   ============================================================ */
+input[type="color"]::-webkit-color-swatch {
+  border: 0;
 }
-.gen__toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-.gen__toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.gen__toolbar-sep {
-  display: inline-block;
-  width: 1px;
-  height: 16px;
-  background: rgba(21, 37, 33, 0.15);
-  margin: 0 4px;
-}
-.gen__toolbar-label {
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--fg-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-.gen__tbtn {
-  padding: 6px 10px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  border: 1px solid rgba(21, 37, 33, 0.15);
-  background: transparent;
-  color: var(--fg-muted);
+
+[data-section="basic-settings"] input[type="color"],
+.settings-button,
+.duplicate-button {
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+  margin: 0 2px;
+  padding: 0;
+  line-height: 1;
   cursor: pointer;
-  transition: all var(--dur-1) var(--ease-out);
-}
-.gen__tbtn:hover {
-  border-color: var(--fg);
-  color: var(--fg);
-}
-.gen__tbtn.is-active {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-.gen__tbtn--small {
-  padding: 4px 8px;
 }
 
-/* ---- Main area: image + panel side by side ---- */
-.gen__main {
-  display: flex;
-  border: 1px solid rgba(21, 37, 33, 0.1);
-  min-height: 500px;
+.textboxes-container .meme-text {
+  min-width: 0;
+  min-height: calc(1.5em + 0.75rem + 2px);
+  max-height: 60px;
+  margin: 0.5rem;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  field-sizing: content;
 }
 
-/* ---- Image preview (left, fills remaining space) ---- */
-.gen__image {
-  flex: 1;
-  display: flex;
+#maxImageDimensionsForm select:disabled {
+  text-indent: -9999px;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.settings-button {
+  background-image: url(/assets/icons/gear.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 64%;
+}
+
+.clear-canvas-button {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  position: relative;
-  min-height: 500px;
+  padding: 0.375rem;
+  transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
 }
-.gen__image canvas,
-.gen__image svg {
+
+@media (hover: hover) {
+  .clear-canvas-button {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .dropzone:hover .clear-canvas-button {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* ============================================================
+   Textboxes
+   ============================================================ */
+.textboxes-container { flex: 1; }
+.textboxes-container:empty { display: none; }
+
+/* ============================================================
+   Instructions (drag & drop area)
+   ============================================================ */
+.instructions {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  height: 100%;
+  padding: 1rem;
+  text-align: center;
+  text-wrap: balance;
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+}
+
+.instructions__image {
+  width: 60px;
+  height: 60px;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-image: url(/assets/icons/add-image-light.svg);
+}
+
+/* ============================================================
+   Errors container
+   ============================================================ */
+.errors-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1051;
+  pointer-events: none;
+}
+.errors-container .alert { pointer-events: all; }
+
+/* ============================================================
+   Text box buttons
+   ============================================================ */
+button[data-button="duplicate-text-box"],
+button[data-button="delete-text-box"] {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0;
+  margin-inline-start: 0.5rem;
+  background-repeat: no-repeat;
+  background-size: 90%;
+  background-position: center;
+}
+
+button[data-button="duplicate-text-box"] {
+  background-image: url(/assets/icons/duplicate-light.svg);
+  background-size: 70%;
+}
+
+button[data-button="delete-text-box"] {
+  background-image: url(/assets/icons/trash.svg);
+  margin-inline-start: 0.25rem;
+}
+
+/* ============================================================
+   Gallery
+   ============================================================ */
+.gallery {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+  min-height: 112px;
+  scroll-behavior: smooth;
+}
+
+.gallery > button {
+  padding: 0;
+  cursor: pointer;
+}
+
+.gallery > button > img {
   display: block;
-  width: 100%;
-  height: auto;
-  max-height: 80vh;
-  object-fit: contain;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--bs-border-radius);
+  object-fit: cover;
 }
 
-/* ---- Controls panel (right, fixed width, scrollable) ---- */
-.gen__panel {
-  width: 340px;
-  min-width: 340px;
-  max-height: 80vh;
-  overflow-y: auto;
-  border-left: 1px solid rgba(21, 37, 33, 0.1);
+.gallery__no-results {
   display: flex;
-  flex-direction: column;
-}
-
-.gen__panel-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(21, 37, 33, 0.1);
-}
-.gen__panel-section:last-child {
-  border-bottom: none;
-}
-
-/* Panel header with template tabs */
-.gen__panel-header {
-  display: flex;
+  justify-content: center;
   align-items: center;
-}
-.gen__panel-tabs {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
-}
-.gen__ptab {
-  padding: 4px 7px;
-  font-family: "Fira Code", monospace;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  border: 1px solid rgba(21, 37, 33, 0.12);
-  background: transparent;
-  color: var(--fg-muted);
-  cursor: pointer;
-  transition: all var(--dur-1) var(--ease-out);
-}
-.gen__ptab:hover {
-  border-color: var(--fg);
-  color: var(--fg);
-}
-.gen__ptab.is-active {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-
-/* Theme swatches */
-.gen__swatches {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
-}
-.gen__swatch {
-  aspect-ratio: 1;
-  border: 2px solid transparent;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: transform var(--dur-1) var(--ease-out);
-}
-.gen__swatch:hover { transform: translateY(-1px); }
-.gen__swatch.is-active { outline: 2px solid var(--fg); outline-offset: 1px; }
-
-/* Text inputs */
-.gen__input {
-  font-family: "Fira Mono", monospace;
-  font-size: 11px;
-  line-height: 1.3;
-  padding: 8px 10px;
-  border: 1px solid rgba(21, 37, 33, 0.2);
-  background: var(--bg);
-  color: var(--fg);
-  width: 100%;
-  resize: vertical;
-}
-.gen__input:focus {
-  outline: 2px solid var(--fg);
-  outline-offset: -1px;
-  border-color: var(--fg);
-}
-.gen__input--ta {
-  min-height: 52px;
-}
-.gen__input--inline {
   flex: 1;
-}
-
-/* Options row */
-.gen__opts {
-  flex-direction: row !important;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px !important;
-}
-
-/* Select dropdowns */
-.gen__sel {
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 500;
-  padding: 5px 8px;
-  border: 1px solid rgba(21, 37, 33, 0.15);
-  background: var(--bg);
-  color: var(--fg);
-  cursor: pointer;
-  text-transform: uppercase;
-}
-.gen__sel:focus {
-  outline: 2px solid var(--fg);
-  outline-offset: -1px;
-}
-
-/* Checkboxes */
-.gen__checks {
-  gap: 8px !important;
-}
-.gen__check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  cursor: pointer;
-}
-.gen__check input[type="checkbox"] {
-  accent-color: var(--fg);
-}
-
-/* Font size row */
-.gen__size-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-.gen__size-label {
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  white-space: nowrap;
-}
-.gen__range {
-  -webkit-appearance: none;
-  flex: 1;
-  height: 2px;
-  background: rgba(21, 37, 33, 0.15);
-  outline: none;
-}
-.gen__range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
-  background: var(--fg);
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-/* Meta row */
-.gen__meta-row {
-  display: flex;
-  gap: 6px;
-}
-
-/* Actions — generate + secondary buttons */
-.gen__panel-actions {
-  gap: 6px !important;
-}
-.gen__generate {
-  width: 100%;
-  padding: 10px 12px;
-  font-family: "Fira Code", monospace;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  background: var(--fg);
-  color: var(--bg);
-  border: 1px solid var(--fg);
-  cursor: pointer;
-  transition: opacity var(--dur-1) var(--ease-out);
-}
-.gen__generate:hover { opacity: 0.85; }
-
-.gen__secondary {
-  display: flex;
-  gap: 4px;
-}
-.gen__secbtn {
-  flex: 1;
-  padding: 6px 10px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  border: 1px solid rgba(21, 37, 33, 0.3);
-  background: transparent;
-  color: var(--fg);
-  cursor: pointer;
-  transition: all var(--dur-1) var(--ease-out);
   text-align: center;
 }
-.gen__secbtn:hover {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
-}
-.gen__secbtn--reset {
-  border-style: dashed;
-  color: var(--fg-muted);
+
+/* ============================================================
+   Move text actions
+   ============================================================ */
+.move-text-actions {
+  position: relative;
+  width: calc(var(--move-btn-width) * 3);
+  height: calc(var(--move-btn-height) * 2);
+  margin: 0 auto;
 }
 
-/* Share row */
-.gen__share-row {
-  flex-direction: row !important;
+.move-text-actions > button {
+  position: absolute;
+  width: var(--move-btn-width);
+  height: var(--move-btn-height);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.move-text-actions > [aria-label="Up"] {
+  top: -1px;
+  left: var(--move-btn-width);
+  background-image: url(/assets/icons/chevron-up.svg);
+}
+.move-text-actions > [aria-label="Down"] {
+  top: calc(var(--move-btn-height) + 1px);
+  left: var(--move-btn-width);
+  background-image: url(/assets/icons/chevron-down.svg);
+}
+.move-text-actions > [aria-label="Left"] {
+  top: calc(var(--move-btn-height) / 2);
+  left: -2px;
+  background-image: url(/assets/icons/chevron-left.svg);
+}
+.move-text-actions > [aria-label="Right"] {
+  top: calc(var(--move-btn-height) / 2);
+  left: calc(var(--move-btn-width) * 2 + 2px);
+  background-image: url(/assets/icons/chevron-right.svg);
+}
+
+/* ============================================================
+   capture-photo
+   ============================================================ */
+capture-photo {
+  position: relative;
+  overflow: hidden;
+}
+capture-photo::part(capture-button) { display: none; }
+capture-photo::part(video) {
+  width: 100%;
+  border-radius: calc(var(--bs-border-radius) / 2);
+}
+capture-photo[loading]::part(video) {
+  background-color: #000000;
+  background-image: url(/assets/icons/spinner.svg);
+  background-size: 60px;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+capture-photo [slot="actions"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+capture-photo[loading] [slot="actions"] { display: none !important; }
+
+/* ============================================================
+   Modal
+   ============================================================ */
+modal-element {
+  --me-width: fit-content;
+  --me-border-radius: var(--bs-border-radius);
+  --me-border-width: 1px;
+  --me-border-color: var(--bs-border-color);
+  --me-box-shadow: 0 0 1rem 0 rgba(0, 0, 0, 0.30);
+  --me-backdrop-background: rgba(0, 0, 0, 0.7);
+  --me-backdrop-filter: blur(2px);
+}
+#videoModal { --me-width: 600px; }
+#videoModal::part(footer) { padding-block: 0; }
+#videoModal:has(capture-photo[loading]) #capturePhotoButton {
+  pointer-events: none;
+  opacity: 0.7;
+}
+#downloadModal { --me-width: 800px; }
+modal-element::part(base):focus-visible { outline: 0; }
+modal-element [slot="header"] { margin: 0; color: var(--bs-body-color); }
+modal-element::part(close) {
+  color: var(--bs-body-color);
+  border-radius: var(--bs-border-radius);
+  transition: box-shadow 0.15s ease-in-out;
+}
+modal-element::part(close):focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+}
+modal-element::part(body) { padding-block: 0; }
+modal-element [slot="footer"] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
   flex-wrap: wrap;
-  gap: 4px !important;
-  border-bottom: none !important;
+  text-align: center;
 }
-.gen__sharebtn {
-  padding: 5px 10px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  border: 1px solid rgba(21, 37, 33, 0.15);
-  color: var(--fg-muted);
+
+/* ============================================================
+   Files dropzone
+   ============================================================ */
+.dropzone {
+  --dropzone-border-color: var(--bs-secondary);
+  --dropzone-border-color-hover: var(--c-ink);
+  --dropzone-border-color-dragover: var(--c-ink);
+  --dropzone-background-color-hover: var(--bs-light);
+  --dropzone-background-color-dragover: var(--bs-light);
+  --dropzone-focus-box-shadow: var(--focus-ring);
+  position: relative;
+  height: 100%;
+}
+
+@media screen and (min-width: 768px) {
+  .meme-column {
+    border-inline-end: 1px solid var(--bs-border-color);
+  }
+  .dropzone {
+    position: sticky;
+    top: 0.25rem;
+  }
+}
+
+.dropzone:not(.dropzone--accepted) { max-height: 41rem; }
+.dropzone--accepted { width: fit-content; height: fit-content; }
+.dropzone::part(dropzone) { height: 100%; padding: 0; }
+.dropzone[disabled]::part(dropzone) { opacity: 1; cursor: default; }
+
+/* ============================================================
+   Emoji picker
+   ============================================================ */
+.emoji-picker-details {
+  margin-bottom: 0.5rem;
+  background-color: var(--bs-body-bg);
+  border-radius: var(--bs-border-radius);
+  border: 1px solid var(--bs-border-color);
+}
+.emoji-picker-details > summary {
+  padding: 0.5rem 1rem;
+  margin-block-end: 0;
+  background-color: var(--bs-body-bg);
+  border-radius: var(--bs-border-radius);
   cursor: pointer;
-  transition: all var(--dur-1) var(--ease-out);
 }
-.gen__sharebtn:hover {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
+.emoji-picker-details[open] > summary {
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+emoji-picker {
+  --border-color: var(--bs-border-color);
+  --background: var(--bs-bg);
+  --input-border-color: var(--bs-border-color);
+  --input-border-radius: var(--bs-border-radius);
+  --input-padding: 0.375rem 0.75rem;
+  --outline-color: #0d6efd40;
+  --outline-size: 4px;
+  --indicator-color: var(--c-ink);
+  --button-hover-background: var(--bs-gray-300);
+  --input-font-color: var(--bs-body-color);
+  width: 100%;
+  height: 255px;
+  padding: 0 0.5rem 0.5rem 0.5rem;
+}
+
+/* ============================================================
+   Alert elements (toasts)
+   ============================================================ */
+alert-element {
+  --alert-border-color: var(--bs-secondary-bg);
+  --alert-bg-color: var(--bs-body-bg);
+  --alert-top-border-width: 0.25rem;
+  --alert-countdown-height: 0.25rem;
+}
+alert-element::part(close) { font-size: 1.125rem; }
+alert-element::part(close):focus-visible {
+  outline: 0;
+  box-shadow: var(--focus-ring);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+/* ============================================================
+   Logos brand overrides on Bootstrap
+   ============================================================ */
+.btn-primary {
+  --bs-btn-bg: var(--c-ink);
+  --bs-btn-border-color: var(--c-ink);
+  --bs-btn-hover-bg: var(--c-slate);
+  --bs-btn-hover-border-color: var(--c-slate);
+  --bs-btn-active-bg: var(--c-ink);
+  --bs-btn-active-border-color: var(--c-ink);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--c-ink);
+  box-shadow: 0 0 0 0.2rem rgba(21, 37, 33, 0.25);
 }
 
 /* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 960px) {
-  .page-wrap { padding-top: 12px; gap: 24px; }
   .d2-nav__links { display: none; }
-  .gen__main {
-    flex-direction: column;
-  }
-  .gen__panel {
-    width: 100%;
-    min-width: 0;
-    max-height: none;
-    border-left: none;
-    border-top: 1px solid rgba(21, 37, 33, 0.1);
-  }
-  .gen__image {
-    min-height: 300px;
-  }
 }
+
+.text-underline { text-decoration: underline; }
