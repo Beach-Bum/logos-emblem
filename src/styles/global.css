@@ -1,8 +1,7 @@
 /* ============================================================
    Logos Emblem Generator — Global styles
-   Adapted from Figma: Logos_Guidelines / Blockchain (169:1347)
-   1440px centered column, 42px top pad, 93px section gap,
-   12px content padding, Fira Code/Mono + Public Sans + Cormorant
+   imgflip UX pattern: large preview LEFT, controls RIGHT
+   Logos design system: 1440px, 12px grid, Fira Code/Mono
    ============================================================ */
 
 @import "./tokens.css";
@@ -28,7 +27,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
 ::selection { background: var(--c-signal); color: var(--c-ink); }
 
 /* ============================================================
-   Page wrapper — Figma frame 169:1347
+   Page wrapper
    ============================================================ */
 .page-wrap {
   display: flex;
@@ -37,124 +36,67 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   padding-top: 42px;
   flex-direction: column;
   align-items: center;
-  gap: 93px;
+  gap: 32px;
   margin: 0 auto;
   background: var(--bg);
 }
 
 /* ============================================================
-   D2 Nav — Figma node 169:1404
-   42px sticky nav, Logos mark + links + CTA
+   D2 Nav
    ============================================================ */
 .d2-nav {
   position: sticky;
   top: 0;
   z-index: 50;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  width: 1440px;
-  max-width: 100%;
+  width: 100%;
   height: 42px;
   padding: 6px 12px;
-  overflow: clip;
-}
-.d2-nav__left {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
 }
 .d2-nav__brand {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-.d2-nav__logo {
-  width: 8px;
-  height: 11px;
-}
+.d2-nav__logo { width: 8px; height: 11px; }
 .d2-nav__wordmark {
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.14px;
-  line-height: 1;
 }
-.d2-nav__links {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
-}
+.d2-nav__links { display: flex; gap: 24px; }
 .d2-nav__link {
-  font-family: var(--font-mono);
+  font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.35;
   text-transform: uppercase;
-  color: var(--fg);
-  white-space: nowrap;
 }
 .d2-nav__link:hover { color: var(--fg-accent); }
 .d2-nav__cta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 8px 12px;
   background: var(--fg);
   color: var(--bg);
   border-radius: 12px;
-  font-family: var(--font-mono);
+  font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.35;
   text-transform: uppercase;
-  white-space: nowrap;
-  backdrop-filter: blur(5px);
 }
 .d2-nav__cta:hover { opacity: 0.85; }
 
 /* ============================================================
-   Hero — adapted from Figma "Tech stack" header (169:1348)
-   Three-column layout: title left, description center, CTAs right
+   Hero — minimal header
    ============================================================ */
 .hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
   width: 100%;
   padding: 0 12px;
-  align-items: start;
 }
-.hero__left {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 500px;
-}
-.hero__back {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 1.3;
-  text-transform: uppercase;
-  color: var(--fg);
-}
-.hero__back-arrow {
-  font-size: 14px;
-  line-height: 1;
-}
-.hero__title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.hero__mark {
-  width: 20px;
-  height: 26px;
-}
+.hero__left { display: flex; flex-direction: column; gap: 4px; }
 .hero__title {
   font-family: var(--font-display);
   font-weight: 400;
@@ -162,294 +104,280 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   line-height: 1;
   letter-spacing: -1.08px;
   margin: 0;
-  white-space: nowrap;
 }
-.hero__copy {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.hero__desc {
+.hero__sub {
   font-family: "Fira Mono", monospace;
   font-size: 10px;
-  font-weight: 400;
   line-height: 1.3;
-  color: var(--fg);
+  color: var(--fg-muted);
   margin: 0;
 }
-.hero__meta {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  font-family: "Fira Mono", monospace;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.3;
-  color: var(--fg);
-}
-.hero__meta p { margin: 0; }
-.hero__meta-heading {
-  font-family: "Fira Code", monospace;
-  font-weight: 600;
-  font-size: 10px;
-  line-height: 1.35;
-  text-transform: uppercase;
-}
-.hero__meta-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.hero__meta-key {
-  font-family: "Fira Code", monospace;
-  font-weight: 600;
-  font-size: 10px;
-  line-height: 1.35;
-  text-transform: uppercase;
-}
-.hero__right {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: flex-start;
-}
-.hero__cta-link {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.35;
-  text-transform: uppercase;
-  color: var(--fg);
-  white-space: nowrap;
-}
-.hero__cta-link:hover { color: var(--fg-accent); }
-.hero__cta-arrow { font-size: 12px; }
 
 /* ============================================================
-   Generator layout
+   Generator — imgflip layout
+   Preview LEFT (large), Controls RIGHT (sidebar)
    ============================================================ */
 .gen {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 12px;
   align-items: start;
   width: 100%;
   padding: 0 12px;
 }
 
-/* ---- Controls sidebar ---- */
-.gen__controls {
+/* ---- Preview (left) ---- */
+.gen__preview {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 12px;
-  border: 1px solid rgba(21, 37, 33, 0.1);
-  border-radius: 12px;
-  background: var(--bg);
-  position: sticky;
-  top: 54px;
+  gap: 0;
 }
 
-.gen__field { display: flex; flex-direction: column; gap: 6px; }
-.gen__field-label {
+/* Toolbar above preview */
+.gen__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  gap: 6px;
+}
+.gen__toolbar-left {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.gen__toolbar-right {
+  display: flex;
+  gap: 4px;
+}
+.gen__toolbar-btn {
+  padding: 6px 10px;
   font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  color: var(--fg);
   line-height: 1.35;
-}
-.gen__field select,
-.gen__field input,
-.gen__field textarea {
-  font-family: "Fira Mono", monospace;
-  font-size: 10px;
-  line-height: 1.3;
-  padding: 8px 10px;
-  border: 1px solid rgba(21, 37, 33, 0.5);
-  background: var(--bg);
-  color: var(--fg);
-  width: 100%;
-  resize: vertical;
-  border-radius: 0;
-  backdrop-filter: blur(5px);
-}
-.gen__field select:focus,
-.gen__field input:focus,
-.gen__field textarea:focus {
-  outline: 2px solid var(--fg);
-  outline-offset: -1px;
-  border-color: var(--fg);
-}
-
-/* ---- Swatches ---- */
-.gen__swatches { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
-.gen__swatch {
-  aspect-ratio: 1;
-  border: 2px solid transparent;
-  border-radius: 4px;
-  display: grid; place-items: center;
-  cursor: pointer;
-  transition: transform var(--dur-1) var(--ease-out);
-}
-.gen__swatch:hover { transform: translateY(-1px); }
-.gen__swatch.is-active { outline: 2px solid var(--fg); outline-offset: 2px; }
-
-/* ---- Actions ---- */
-.gen__actions { display: flex; gap: 6px; margin-top: 4px; }
-.gen__btn {
-  flex: 1;
-  font-family: "Fira Code", monospace;
-  font-size: 10px;
-  font-weight: 600;
   text-transform: uppercase;
-  line-height: 1.35;
-  padding: 8px 12px;
-  border: 1px solid rgba(21, 37, 33, 0.5);
+  border: 1px solid rgba(21, 37, 33, 0.15);
   background: transparent;
-  color: var(--fg);
+  color: var(--fg-muted);
   cursor: pointer;
-  backdrop-filter: blur(5px);
-  transition: background var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+  transition: all var(--dur-1) var(--ease-out);
 }
-.gen__btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.gen__btn--solid {
+.gen__toolbar-btn:hover {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+.gen__toolbar-btn.is-active {
   background: var(--fg);
   color: var(--bg);
-  border-radius: 12px;
   border-color: var(--fg);
 }
-.gen__btn--solid:hover { opacity: 0.85; }
 
-/* ---- Preview ---- */
-.gen__preview { display: grid; place-items: start center; }
+/* Canvas wrap */
 .gen__canvas-wrap {
   width: 100%;
   border: 1px solid rgba(21, 37, 33, 0.1);
-  border-radius: 12px;
   overflow: hidden;
   position: relative;
 }
 .gen__canvas-wrap canvas,
-.gen__canvas-wrap svg { display: block; width: 100%; height: auto; }
-
-/* ---- Image library grid ---- */
-.gen__library {
+.gen__canvas-wrap svg {
+  display: block;
   width: 100%;
-  padding: 0 12px;
-  border-top: 1px solid rgba(21, 37, 33, 0.1);
-  padding-top: 48px;
+  height: auto;
 }
-.gen__library-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-.gen__library-item {
-  aspect-ratio: 1;
-  object-fit: cover;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: border-color var(--dur-1) var(--ease-out), transform var(--dur-1) var(--ease-out);
-}
-.gen__library-item:hover { transform: translateY(-2px); border-color: var(--fg-accent); }
-.gen__library-item.is-active { border-color: var(--fg); }
 
-/* ---- Upload zone ---- */
-.gen__upload {
-  border: 1px dashed rgba(21, 37, 33, 0.5);
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color var(--dur-1) var(--ease-out), background var(--dur-1) var(--ease-out);
+/* ---- Controls sidebar (right) ---- */
+.gen__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: sticky;
+  top: 54px;
+  max-height: calc(100vh - 66px);
+  overflow-y: auto;
+}
+
+.gen__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(21, 37, 33, 0.1);
+}
+.gen__section:first-child { padding-top: 0; }
+.gen__section:last-child { border-bottom: none; }
+.gen__section--row {
+  flex-direction: row;
+  gap: 8px;
+}
+
+/* Labels */
+.gen__label {
   font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
+  line-height: 1.35;
   text-transform: uppercase;
   color: var(--fg-muted);
-  backdrop-filter: blur(5px);
 }
-.gen__upload:hover { border-color: var(--fg); background: rgba(95,121,124,0.05); }
 
-/* ---- Range slider ---- */
+/* Inputs */
+.gen__input {
+  font-family: "Fira Mono", monospace;
+  font-size: 10px;
+  line-height: 1.3;
+  padding: 8px 10px;
+  border: 1px solid rgba(21, 37, 33, 0.2);
+  background: var(--bg);
+  color: var(--fg);
+  width: 100%;
+  resize: vertical;
+}
+.gen__input:focus {
+  outline: 2px solid var(--fg);
+  outline-offset: -1px;
+  border-color: var(--fg);
+}
+.gen__textarea { min-height: 60px; }
+
+/* Swatches */
+.gen__swatches {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.gen__swatch {
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+.gen__swatch:hover { transform: translateY(-1px); }
+.gen__swatch.is-active { outline: 2px solid var(--fg); outline-offset: 1px; }
+
+/* Layout tabs */
+.gen__layout-tabs {
+  display: flex;
+  gap: 4px;
+}
+.gen__tab {
+  flex: 1;
+  padding: 6px 8px;
+  font-family: "Fira Code", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-transform: uppercase;
+  text-align: center;
+  border: 1px solid rgba(21, 37, 33, 0.15);
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.gen__tab:hover { border-color: var(--fg); color: var(--fg); }
+.gen__tab.is-active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+/* Checkbox */
+.gen__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Fira Code", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+
+/* Range */
 .gen__range {
   -webkit-appearance: none;
   width: 100%;
   height: 2px;
-  background: rgba(21, 37, 33, 0.1);
+  background: rgba(21, 37, 33, 0.15);
   outline: none;
+  margin-top: 8px;
 }
 .gen__range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px; height: 14px;
+  width: 12px;
+  height: 12px;
   background: var(--fg);
   border-radius: 50%;
   cursor: pointer;
 }
 
-/* ---- Share buttons ---- */
-.gen__share { display: flex; gap: 6px; flex-wrap: wrap; }
-.gen__share-btn {
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  border: 1px solid rgba(21, 37, 33, 0.5);
-  color: var(--fg);
-  cursor: pointer;
+/* Actions — imgflip-style bottom buttons */
+.gen__actions {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 6px !important;
+}
+.gen__btn {
+  padding: 8px 12px;
   font-family: "Fira Code", monospace;
   font-size: 10px;
   font-weight: 600;
-  text-transform: uppercase;
   line-height: 1.35;
-  backdrop-filter: blur(5px);
-  transition: background var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out);
+  text-transform: uppercase;
+  border: 1px solid rgba(21, 37, 33, 0.3);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
+}
+.gen__btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.gen__btn--generate {
+  flex: 1 0 100%;
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+  padding: 10px 12px;
+}
+.gen__btn--generate:hover { opacity: 0.85; }
+.gen__btn--reset {
+  border-style: dashed;
+  color: var(--fg-muted);
+}
+
+/* Share */
+.gen__share {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 4px !important;
+  border-bottom: none !important;
+}
+.gen__share-btn {
+  padding: 6px 10px;
+  font-family: "Fira Code", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-transform: uppercase;
+  border: 1px solid rgba(21, 37, 33, 0.15);
+  color: var(--fg-muted);
+  cursor: pointer;
+  transition: all var(--dur-1) var(--ease-out);
 }
 .gen__share-btn:hover { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-.gen__share-btn--native { border-style: dashed; }
-
-/* ---- Help text ---- */
-.gen__help {
-  font-family: "Fira Mono", monospace;
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.3;
-  color: var(--fg-muted);
-  margin: 0;
-}
 
 /* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 960px) {
-  .page-wrap {
-    padding-top: 12px;
-    gap: 48px;
-  }
-  .d2-nav {
-    padding: 6px 12px;
-  }
+  .page-wrap { padding-top: 12px; gap: 24px; }
   .d2-nav__links { display: none; }
-  .hero {
-    flex-direction: column;
-    gap: 24px;
-  }
   .gen {
     grid-template-columns: 1fr;
-    gap: 24px;
   }
   .gen__controls {
     position: static;
-  }
-  .hero__title {
-    font-size: clamp(24px, 6vw, 36px);
+    max-height: none;
   }
 }
