@@ -2,13 +2,6 @@
 import Shell from "../layouts/Shell.astro";
 ---
 <Shell>
-  <section class="hero">
-    <div class="hero__left">
-      <h1 class="hero__title">Emblem Generator</h1>
-      <p class="hero__sub">Create on-brand Logos memes, posters, and social posts. Upload or pick an image, add text, overlay the logomark.</p>
-    </div>
-  </section>
-
   <div class="container">
     <div class="errors-container">
       <div class="container mt-2">
@@ -220,6 +213,49 @@ import Shell from "../layouts/Shell.astro";
                 <option value="4000x3000" selected>4000x3000</option>
               </select>
             </form>
+          </div>
+        </details>
+
+        <details class="mb-4" open>
+          <summary><strong>Logos options</strong></summary>
+          <div class="bg-body-tertiary py-3 px-2 border shadow-sm rounded">
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label for="outputSizeSelect" class="mb-1 d-block"><small>Output size</small></label>
+                <select class="form-select form-select-sm" id="outputSizeSelect">
+                  <option value="original" selected>Original</option>
+                  <option value="1080x1080">Square — 1080×1080</option>
+                  <option value="1080x1920">Story — 1080×1920</option>
+                  <option value="1200x628">Landscape — 1200×628</option>
+                  <option value="1414x2000">Poster A2 — 1414×2000</option>
+                  <option value="1080x1350">Portrait — 1080×1350</option>
+                  <option value="1920x1080">HD — 1920×1080</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="filterSelect" class="mb-1 d-block"><small>Filter</small></label>
+                <select class="form-select form-select-sm" id="filterSelect">
+                  <option value="none" selected>None</option>
+                  <option value="dither">Dither</option>
+                  <option value="grain">Grain</option>
+                </select>
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-6">
+                <label for="logoPlacementSelect" class="mb-1 d-block"><small>Logomark placement</small></label>
+                <select class="form-select form-select-sm" id="logoPlacementSelect">
+                  <option value="none">None</option>
+                  <option value="middle">Middle</option>
+                  <option value="top" selected>Top</option>
+                  <option value="bottom-left">Bottom left</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="logoColorInput" class="mb-1 d-block"><small>Logomark color</small></label>
+                <input type="color" class="form-control form-control-sm" id="logoColorInput" value="#ffffff" style="height: 31px;">
+              </div>
+            </div>
           </div>
         </details>
 

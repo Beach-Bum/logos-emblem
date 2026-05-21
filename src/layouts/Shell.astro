@@ -18,18 +18,15 @@ import "../styles/global.css";
   </head>
   <body class="bg-body-tertiary">
     <div class="page-wrap">
-      <nav class="d2-nav">
-        <a href="/" class="d2-nav__brand">
-          <img src="/assets/img/logomark.svg" alt="" class="d2-nav__logo" width="8" height="11" />
-          <span class="d2-nav__wordmark">Logos</span>
+      <header class="logos-header">
+        <a href="/" class="logos-header__brand">
+          <img src="/assets/img/logomark.svg" alt="Logos" class="logos-header__mark" width="20" height="26" />
         </a>
-        <div class="d2-nav__links">
-          <a href="https://logos.co" class="d2-nav__link">About</a>
-          <a href="https://logos.co/technology" class="d2-nav__link">Technology</a>
-          <a href="https://logos.co/brand-guidelines" class="d2-nav__link">Guidelines</a>
+        <div class="logos-header__title">
+          <h1 class="logos-header__h1">Emblem Generator</h1>
+          <p class="logos-header__sub">Create on-brand Logos memes, posters, and social posts.</p>
         </div>
-        <a href="https://logos.co" class="d2-nav__cta">Logos.co</a>
-      </nav>
+      </header>
       <main>
         <slot />
       </main>

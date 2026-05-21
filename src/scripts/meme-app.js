@@ -45,6 +45,10 @@ const removeTextForm = document.getElementById('removeTextForm');
 const maxImageDimensionsForm = document.getElementById('maxImageDimensionsForm');
 const maxImageDimensionsSelect = maxImageDimensionsForm['maxImageDimensions'];
 const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+const filterSelect = document.getElementById('filterSelect');
+const outputSizeSelect = document.getElementById('outputSizeSelect');
+const logoPlacementSelect = document.getElementById('logoPlacementSelect');
+const logoColorInput = document.getElementById('logoColorInput');
 const maxImageDimensionsFromStorage = storage.get('maxImageDimensions');
 let shouldFocusOnTextboxCreate = false;
 let selectedImage = null;
@@ -81,6 +85,10 @@ solidColorForm.addEventListener('input', handleSolidColorFormInput);
 removeTextForm.addEventListener('submit', handleTextRemoveFormSubmit);
 maxImageDimensionsForm.addEventListener('change', handleMaxImageDimensionsFormChange);
 clearCanvasBtn.addEventListener('click', handleClearCanvas);
+filterSelect.addEventListener('change', handleFilterChange);
+outputSizeSelect.addEventListener('change', handleOutputSizeChange);
+logoPlacementSelect.addEventListener('change', handleLogoPlacementChange);
+logoColorInput.addEventListener('input', handleLogoColorChange);
 cameraSelect.addEventListener('change', handleCameraSelectChange);
 capturePhotoButton.addEventListener('click', handleCapturePhotoButtonClick);
 torchButton.addEventListener('click', handleTorchButtonClick);
@@ -174,7 +182,13 @@ function afterImageSelect() {
 
 function handleImageLoad(evt) {
   selectedImage = evt.target;
-  setImageMaxDimensions(selectedImage);
+  const outputSize = canvas.getOutputSize();
+  if (outputSize !== 'original') {
+    const [w, h] = outputSize.split('x').map(Number);
+    canvas.setDimensions({ width: w, height: h });
+  } else {
+    setImageMaxDimensions(selectedImage);
+  }
   afterImageSelect();
 }
 
@@ -535,6 +549,35 @@ function handleCameraSelectChange(evt) {
 function handleCapturePhotoButtonClick() {
   if (!capturePhotoEl || typeof capturePhotoEl.capture !== 'function' || capturePhotoEl.hasAttribute('loading')) return;
   capturePhotoEl.capture();
+}
+
+function handleFilterChange(evt) {
+  canvas.setFilter(evt.target.value);
+  if (selectedImage) canvas.draw(selectedImage, Textbox.getAll());
+}
+
+function handleOutputSizeChange(evt) {
+  const value = evt.target.value;
+  canvas.setOutputSize(value);
+  if (value === 'original') {
+    if (selectedImage && !isSolidColorSelected(selectedImage)) {
+      setImageMaxDimensions(selectedImage);
+    }
+  } else {
+    const [w, h] = value.split('x').map(Number);
+    canvas.setDimensions({ width: w, height: h });
+  }
+  if (selectedImage) canvas.draw(selectedImage, Textbox.getAll());
+}
+
+function handleLogoPlacementChange(evt) {
+  canvas.setLogoPlacement(evt.target.value);
+  if (selectedImage) canvas.draw(selectedImage, Textbox.getAll());
+}
+
+function handleLogoColorChange(evt) {
+  canvas.setLogoColor(evt.target.value);
+  if (selectedImage) canvas.draw(selectedImage, Textbox.getAll());
 }
 
 function handleBeforeunload(evt) {
