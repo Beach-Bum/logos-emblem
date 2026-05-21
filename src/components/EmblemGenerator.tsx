@@ -1,22 +1,46 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+/* ============================================================
+   Logos Emblem Generator
+   --------------------------------------------------------
+   Merges the brand poster generator (SVG templates, themes,
+   layouts) with meme-style image overlay (upload, filters,
+   text). Exports PNG/SVG. Shares to social.
+   ============================================================ */
 
-/* ── Brand palette ── */
-const PALETTE = [
-  { name: "Paper", hex: "#f5f5ef" },
-  { name: "Ink", hex: "#152521" },
-  { name: "Signal", hex: "#ffd328" },
-  { name: "Fog", hex: "#dbddd7" },
-  { name: "Slate", hex: "#475651" },
-  { name: "Steel", hex: "#5f797c" },
-  { name: "Rust", hex: "#6d3d30" },
-  { name: "Plum", hex: "#48373f" },
-  { name: "Sky", hex: "#c6ebf7" },
-  { name: "Moss", hex: "#616e69" },
-  { name: "Forest", hex: "#0d2b2d" },
-  { name: "Sand", hex: "#e2e0c9" },
-];
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
-/* ── Filters ── */
+/* ── Templates / Formats ── */
+const TEMPLATES = [
+  { id: "square",    label: "Social — square",    w: 1080, h: 1080 },
+  { id: "story",     label: "Social — story",     w: 1080, h: 1920 },
+  { id: "landscape", label: "Social — landscape",  w: 1200, h: 628 },
+  { id: "poster",    label: "Poster — A2",         w: 1414, h: 2000 },
+  { id: "sticker",   label: "Sticker — circle",    w: 1080, h: 1080 },
+] as const;
+type Template = (typeof TEMPLATES)[number];
+
+/* ── Color themes ── */
+const THEMES = [
+  { id: "ink-paper", label: "Ink on paper",   bg: "#f5f5ef", fg: "#152521", accent: "#5f797c" },
+  { id: "paper-ink", label: "Paper on ink",   bg: "#152521", fg: "#f5f5ef", accent: "#ffd328" },
+  { id: "signal",    label: "Signal yellow",  bg: "#ffd328", fg: "#152521", accent: "#152521" },
+  { id: "steel",     label: "Steel",          bg: "#5f797c", fg: "#f5f5ef", accent: "#ffd328" },
+  { id: "rust",      label: "Rust",           bg: "#6d3d30", fg: "#f5f5ef", accent: "#ffd328" },
+  { id: "plum",      label: "Plum",           bg: "#48373f", fg: "#f5f5ef", accent: "#ffd328" },
+  { id: "forest",    label: "Forest",         bg: "#0d2b2d", fg: "#f5f5ef", accent: "#c6ebf7" },
+  { id: "sand",      label: "Sand",           bg: "#e2e0c9", fg: "#152521", accent: "#6d3d30" },
+] as const;
+type Theme = (typeof THEMES)[number];
+
+/* ── Layouts ── */
+const LAYOUTS = [
+  { id: "stacked",  label: "Stacked — headline left, mark top-left" },
+  { id: "centered", label: "Centered — single line, mark above" },
+  { id: "split",    label: "Split — eyebrow top, headline bottom" },
+  { id: "meme",     label: "Meme — image with top/bottom text" },
+] as const;
+type Layout = (typeof LAYOUTS)[number];
+
+/* ── Filters (applied to uploaded image) ── */
 type FilterId = "none" | "dither" | "grain";
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: "none", label: "None" },
@@ -24,127 +48,118 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: "grain", label: "Grain" },
 ];
 
-/* ── Fonts ── */
+/* ── Fonts for meme mode ── */
 const FONTS = [
   { id: "display", label: "Cormorant Garamond", css: '"Cormorant Garamond", Georgia, serif' },
   { id: "sans", label: "Public Sans", css: '"Public Sans", system-ui, sans-serif' },
   { id: "mono", label: "Fira Code", css: '"Fira Code", monospace' },
 ];
 
-/* ── Library (user will populate) ── */
+/* ── Lambda position ── */
+type LambdaPos = "top-right" | "center" | "top-left" | "bottom-right";
+const LAMBDA_POSITIONS: { id: LambdaPos; label: string }[] = [
+  { id: "top-right", label: "Top-right" },
+  { id: "top-left", label: "Top-left" },
+  { id: "center", label: "Center" },
+  { id: "bottom-right", label: "Bottom-right" },
+];
+
+/* ── Library (user will add) ── */
 const LIBRARY: string[] = [];
 
-/* ── Canvas ── */
-const CW = 1080;
-const CH = 1080;
+/* ── Share ── */
+const SITE_URL = "https://logos-emblem.vercel.app";
+const SHARE_TEXT = "Made with the Logos Emblem Generator";
 
-/* ── Vector lambda path — traced from Logos brand mark ── */
-function drawLambda(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, color: string) {
-  // Lambda drawn in a 100x140 viewbox, scaled to height h
-  const scale = h / 140;
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  ctx.beginPath();
-  // Traced from the Logos lambda mark
-  ctx.moveTo(38, 0);
-  ctx.bezierCurveTo(36, 0, 34, 1, 33, 3);
-  ctx.lineTo(0, 95);
-  ctx.bezierCurveTo(-1, 98, 1, 100, 4, 100);
-  ctx.lineTo(14, 100);
-  ctx.bezierCurveTo(17, 100, 19, 98, 20, 95);
-  ctx.lineTo(44, 32);
-  ctx.lineTo(68, 95);
-  ctx.bezierCurveTo(69, 98, 71, 100, 74, 100);
-  ctx.lineTo(84, 100);
-  ctx.bezierCurveTo(87, 100, 89, 98, 88, 95);
-  // Right descender with calligraphic curve
-  ctx.lineTo(88, 95);
-  ctx.bezierCurveTo(88, 95, 92, 108, 86, 120);
-  ctx.bezierCurveTo(80, 132, 65, 138, 50, 140);
-  ctx.bezierCurveTo(48, 140, 46, 139, 46, 137);
-  ctx.lineTo(46, 130);
-  ctx.bezierCurveTo(46, 128, 48, 127, 50, 127);
-  ctx.bezierCurveTo(60, 126, 70, 122, 74, 114);
-  ctx.bezierCurveTo(78, 106, 76, 98, 76, 98);
-  ctx.lineTo(48, 22);
-  ctx.bezierCurveTo(46, 17, 44, 8, 44, 3);
-  ctx.bezierCurveTo(44, 1, 42, 0, 40, 0);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.restore();
-}
-
+/* ── State ── */
 type State = {
+  template: Template;
+  theme: Theme;
+  layout: Layout;
+  eyebrow: string;
+  headline: string;
+  meta: string;
+  // Meme-specific
   imageSrc: string | null;
   topText: string;
   bottomText: string;
   font: string;
-  textColor: string;
-  filter: FilterId;
-  showEmblem: boolean;
-  emblemColor: string;
   fontSize: number;
+  filter: FilterId;
+  // Lambda
+  showLambda: boolean;
+  lambdaPos: LambdaPos;
 };
 
-function randomChoice<T>(arr: T[]): T {
+function randomChoice<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 const INITIAL: State = {
+  template: TEMPLATES[0],
+  theme: THEMES[1],
+  layout: LAYOUTS[0],
+  eyebrow: "Brand Guidelines",
+  headline: "Build the parallel.",
+  meta: "logos.co",
   imageSrc: null,
   topText: "",
   bottomText: "",
   font: FONTS[0].css,
-  textColor: "#f5f5ef",
-  filter: "none",
-  showEmblem: true,
-  emblemColor: "#f5f5ef",
   fontSize: 72,
+  filter: "none",
+  showLambda: true,
+  lambdaPos: "top-right",
 };
 
-/* ── Social share URLs ── */
-const SITE_URL = "https://logos-emblem.vercel.app";
-const SHARE_TEXT = "Made with the Logos Emblem Generator";
+/* ── Helpers ── */
+function wrapLines(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let cur = "";
+  for (const w of words) {
+    if ((cur + " " + w).trim().length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = (cur + " " + w).trim();
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 6);
+}
 
-function shareToX() {
-  window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SITE_URL)}`,
-    "_blank",
+function triggerDownload(url: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+/* ── SVG Lambda component (used in poster/stacked/centered/split) ── */
+function LambdaGlyph({ x, y, size, color }: { x: number; y: number; size: number; color: string }) {
+  return (
+    <text
+      x={x} y={y}
+      fontFamily="Cormorant Garamond, Georgia, serif"
+      fontSize={size}
+      fontStyle="italic"
+      fill={color}
+      dominantBaseline="text-before-edge"
+    >
+      λ
+    </text>
   );
 }
 
-function shareToBluesky() {
-  window.open(
-    `https://bsky.app/intent/compose?text=${encodeURIComponent(`${SHARE_TEXT} ${SITE_URL}`)}`,
-    "_blank",
-  );
-}
-
-function shareToLinkedIn() {
-  window.open(
-    `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`,
-    "_blank",
-  );
-}
-
-function shareToTelegram() {
-  window.open(
-    `https://t.me/share/url?url=${encodeURIComponent(SITE_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`,
-    "_blank",
-  );
-}
-
-function shareToReddit() {
-  window.open(
-    `https://reddit.com/submit?url=${encodeURIComponent(SITE_URL)}&title=${encodeURIComponent(SHARE_TEXT)}`,
-    "_blank",
-  );
-}
-
+/* ============================================================
+   COMPONENT
+   ============================================================ */
 export default function EmblemGenerator() {
   const [s, setS] = useState<State>(INITIAL);
+  const svgRef = useRef<SVGSVGElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -153,108 +168,135 @@ export default function EmblemGenerator() {
     setS((prev) => ({ ...prev, [k]: v }));
   }, []);
 
+  const isMeme = s.layout.id === "meme";
+  const { w, h } = s.template;
+
   /* ── File upload ── */
   const handleFile = useCallback((file: File) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
-      set("imageSrc", url);
+      setS((prev) => ({ ...prev, imageSrc: url, layout: LAYOUTS[3] })); // auto-switch to meme
     };
     img.src = url;
-  }, [set]);
+  }, []);
 
-  /* ── Library pick ── */
   const pickLibrary = useCallback((src: string) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
       imgRef.current = img;
-      set("imageSrc", src);
+      setS((prev) => ({ ...prev, imageSrc: src, layout: LAYOUTS[3] }));
     };
     img.src = src;
-  }, [set]);
+  }, []);
 
-  /* ── Apply pixel filters ── */
-  const applyFilter = useCallback((ctx: CanvasRenderingContext2D) => {
+  /* ── Filter application (meme canvas) ── */
+  const applyFilter = useCallback((ctx: CanvasRenderingContext2D, cw: number, ch: number) => {
     if (s.filter === "none") return;
-    const imageData = ctx.getImageData(0, 0, CW, CH);
+    const imageData = ctx.getImageData(0, 0, cw, ch);
     const d = imageData.data;
 
-    switch (s.filter) {
-      case "dither": {
-        const gray = new Float32Array(CW * CH);
-        for (let i = 0; i < gray.length; i++) {
-          gray[i] = d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114;
-        }
-        for (let y = 0; y < CH; y++) {
-          for (let x = 0; x < CW; x++) {
-            const idx = y * CW + x;
-            const old = gray[idx];
-            const val = old > 127 ? 255 : 0;
-            gray[idx] = val;
-            const err = old - val;
-            if (x + 1 < CW) gray[idx + 1] += err * 7 / 16;
-            if (y + 1 < CH) {
-              if (x > 0) gray[(y + 1) * CW + x - 1] += err * 3 / 16;
-              gray[(y + 1) * CW + x] += err * 5 / 16;
-              if (x + 1 < CW) gray[(y + 1) * CW + x + 1] += err * 1 / 16;
-            }
+    if (s.filter === "dither") {
+      const gray = new Float32Array(cw * ch);
+      for (let i = 0; i < gray.length; i++) {
+        gray[i] = d[i * 4] * 0.299 + d[i * 4 + 1] * 0.587 + d[i * 4 + 2] * 0.114;
+      }
+      for (let y = 0; y < ch; y++) {
+        for (let x = 0; x < cw; x++) {
+          const idx = y * cw + x;
+          const old = gray[idx];
+          const val = old > 127 ? 255 : 0;
+          gray[idx] = val;
+          const err = old - val;
+          if (x + 1 < cw) gray[idx + 1] += err * 7 / 16;
+          if (y + 1 < ch) {
+            if (x > 0) gray[(y + 1) * cw + x - 1] += err * 3 / 16;
+            gray[(y + 1) * cw + x] += err * 5 / 16;
+            if (x + 1 < cw) gray[(y + 1) * cw + x + 1] += err * 1 / 16;
           }
         }
-        for (let i = 0; i < gray.length; i++) {
-          const v = Math.max(0, Math.min(255, gray[i]));
-          d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
-        }
-        break;
       }
-
-      case "grain": {
-        for (let i = 0; i < d.length; i += 4) {
-          const noise = (Math.random() - 0.5) * 80;
-          d[i] = Math.max(0, Math.min(255, d[i] + noise));
-          d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + noise));
-          d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + noise));
-        }
-        break;
+      for (let i = 0; i < gray.length; i++) {
+        const v = Math.max(0, Math.min(255, gray[i]));
+        d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
+      }
+    } else if (s.filter === "grain") {
+      for (let i = 0; i < d.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 80;
+        d[i] = Math.max(0, Math.min(255, d[i] + noise));
+        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + noise));
+        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + noise));
       }
     }
-
     ctx.putImageData(imageData, 0, 0);
   }, [s.filter]);
 
-  /* ── Render canvas ── */
-  const render = useCallback(() => {
+  /* ── Render meme canvas ── */
+  const renderMemeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !isMeme) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background
-    ctx.fillStyle = "#152521";
-    ctx.fillRect(0, 0, CW, CH);
+    canvas.width = w;
+    canvas.height = h;
 
-    // Image
+    // Background
+    ctx.fillStyle = s.theme.bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Image (cover fit)
     if (imgRef.current) {
       const img = imgRef.current;
-      const scale = Math.max(CW / img.width, CH / img.height);
-      const w = img.width * scale;
-      const h = img.height * scale;
-      ctx.drawImage(img, (CW - w) / 2, (CH - h) / 2, w, h);
+      const scale = Math.max(w / img.width, h / img.height);
+      const iw = img.width * scale;
+      const ih = img.height * scale;
+      ctx.drawImage(img, (w - iw) / 2, (h - ih) / 2, iw, ih);
     }
 
     // Filter
-    applyFilter(ctx);
+    applyFilter(ctx, w, h);
 
-    // Lambda emblem — fixed top-right corner, vector-drawn
-    if (s.showEmblem) {
-      const emblemHeight = 64;
-      const margin = 32;
-      const emblemWidth = emblemHeight * (100 / 140); // viewbox ratio
-      const ex = CW - margin - emblemWidth;
-      const ey = margin;
+    // Lambda overlay (Cormorant Garamond italic glyph)
+    if (s.showLambda) {
+      const lambdaSize = Math.min(w, h) * 0.06;
+      const margin = Math.min(w, h) * 0.04;
+      let lx: number, ly: number;
+      ctx.font = `italic ${lambdaSize}px "Cormorant Garamond", Georgia, serif`;
+      ctx.textBaseline = "top";
+
+      switch (s.lambdaPos) {
+        case "top-left":
+          lx = margin;
+          ly = margin;
+          ctx.textAlign = "left";
+          break;
+        case "top-right":
+          lx = w - margin;
+          ly = margin;
+          ctx.textAlign = "right";
+          break;
+        case "center":
+          lx = w / 2;
+          ly = h / 2 - lambdaSize / 2;
+          ctx.textAlign = "center";
+          break;
+        case "bottom-right":
+          lx = w - margin;
+          ly = h - margin - lambdaSize;
+          ctx.textAlign = "right";
+          break;
+      }
+
       ctx.globalAlpha = 0.9;
-      drawLambda(ctx, ex, ey, emblemHeight, s.emblemColor);
+      ctx.shadowColor = "rgba(0,0,0,0.5)";
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = s.theme.fg;
+      ctx.fillText("λ", lx, ly);
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
       ctx.globalAlpha = 1;
     }
 
@@ -263,16 +305,15 @@ export default function EmblemGenerator() {
       if (!text) return;
       ctx.save();
       ctx.font = `600 ${s.fontSize}px ${s.font}`;
-      ctx.fillStyle = s.textColor;
+      ctx.fillStyle = s.theme.fg;
       ctx.textAlign = "center";
       ctx.textBaseline = position === "top" ? "top" : "bottom";
-
       ctx.shadowColor = "rgba(0,0,0,0.7)";
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      const maxWidth = CW - 80;
+      const maxWidth = w - 80;
       const words = text.split(" ");
       const lines: string[] = [];
       let current = "";
@@ -288,80 +329,306 @@ export default function EmblemGenerator() {
       if (current) lines.push(current);
 
       const lineHeight = s.fontSize * 1.15;
-      const startY = position === "top" ? 40 : CH - 40 - (lines.length - 1) * lineHeight;
-
+      const startY = position === "top" ? 40 : h - 40 - (lines.length - 1) * lineHeight;
       lines.forEach((line, i) => {
-        ctx.fillText(line, CW / 2, startY + i * lineHeight);
+        ctx.fillText(line, w / 2, startY + i * lineHeight);
       });
       ctx.restore();
     };
 
     drawText(s.topText, "top");
     drawText(s.bottomText, "bottom");
-  }, [s, applyFilter]);
 
-  useEffect(() => { render(); }, [render]);
+    // Meta line bottom
+    if (s.meta) {
+      ctx.save();
+      ctx.font = `500 ${Math.round(w * 0.016)}px "Fira Code", monospace`;
+      ctx.fillStyle = s.theme.fg;
+      ctx.globalAlpha = 0.65;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(s.meta.toUpperCase(), 32, h - 20);
+      ctx.restore();
+    }
+  }, [s, w, h, isMeme, applyFilter]);
 
-  /* ── Randomizer ── */
-  const randomize = () => {
-    setS((prev) => ({
-      ...prev,
-      filter: randomChoice(FILTERS).id,
-      textColor: randomChoice(PALETTE).hex,
-      emblemColor: randomChoice(PALETTE).hex,
-      font: randomChoice(FONTS).css,
-      fontSize: 48 + Math.floor(Math.random() * 72),
-      showEmblem: true,
-    }));
-  };
+  useEffect(() => { renderMemeCanvas(); }, [renderMemeCanvas]);
 
-  /* ── Download ── */
-  const download = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const link = document.createElement("a");
-    link.download = "logos-emblem.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  };
+  /* ── SVG Poster (for non-meme layouts) ── */
+  const Poster = useMemo(() => {
+    if (isMeme) return null;
+    const { bg, fg, accent } = s.theme;
+    const pad = Math.round(Math.min(w, h) * 0.07);
+    const isSticker = s.template.id === "sticker";
 
-  /* ── Copy to clipboard ── */
-  const copyToClipboard = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    let body: JSX.Element;
+    if (s.layout.id === "centered") {
+      const size = Math.min(w, h) * 0.11;
+      body = (
+        <>
+          <LambdaGlyph x={w / 2 - size * 0.08} y={h / 2 - size * 1.2} size={size * 0.35} color={accent} />
+          <text
+            x={w / 2} y={h / 2 + size * 0.2}
+            textAnchor="middle"
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            fontSize={size}
+            fill={fg}
+            style={{ letterSpacing: "-0.03em" }}
+          >
+            {s.headline || "Headline"}
+          </text>
+        </>
+      );
+    } else if (s.layout.id === "split") {
+      const size = Math.min(w, h) * 0.13;
+      body = (
+        <>
+          <text
+            x={pad} y={pad * 1.3}
+            fontFamily="Fira Code, monospace"
+            fontSize={w * 0.018}
+            letterSpacing="0.12em"
+            fill={fg}
+            style={{ textTransform: "uppercase" }}
+          >
+            {(s.eyebrow || "EYEBROW").toUpperCase()}
+          </text>
+          <text
+            x={pad} y={h - pad - size * 0.1}
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            fontSize={size}
+            fill={fg}
+            style={{ letterSpacing: "-0.03em" }}
+          >
+            <tspan x={pad} dy={-size * 1.05}>{s.headline || "Headline"}</tspan>
+          </text>
+        </>
+      );
+    } else {
+      // stacked (default)
+      const size = Math.min(w, h) * 0.1;
+      body = (
+        <>
+          <LambdaGlyph x={pad} y={pad * 0.8} size={w * 0.08} color={accent} />
+          <text
+            x={pad} y={pad * 2.4}
+            fontFamily="Fira Code, monospace"
+            fontSize={w * 0.016}
+            letterSpacing="0.12em"
+            fill={fg}
+            opacity={0.7}
+            style={{ textTransform: "uppercase" }}
+          >
+            {(s.eyebrow || "EYEBROW").toUpperCase()}
+          </text>
+          <text
+            x={pad} y={h * 0.55}
+            fontFamily="Cormorant Garamond, Georgia, serif"
+            fontSize={size}
+            fill={fg}
+            style={{ letterSpacing: "-0.03em" }}
+          >
+            {wrapLines(s.headline || "Headline", 14).map((line, i) => (
+              <tspan key={i} x={pad} dy={i === 0 ? 0 : size * 1.0}>{line}</tspan>
+            ))}
+          </text>
+        </>
+      );
+    }
+
+    return (
+      <svg
+        ref={svgRef}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox={`0 0 ${w} ${h}`}
+        width={w}
+        height={h}
+        style={{ display: "block", width: "100%", height: "auto", background: bg }}
+      >
+        {isSticker ? (
+          <circle cx={w / 2} cy={h / 2} r={w / 2} fill={bg} />
+        ) : (
+          <rect x={0} y={0} width={w} height={h} fill={bg} />
+        )}
+        {isSticker && (
+          <clipPath id="sticker-clip"><circle cx={w / 2} cy={h / 2} r={w / 2} /></clipPath>
+        )}
+        <g clipPath={isSticker ? "url(#sticker-clip)" : undefined}>
+          {body}
+          {/* foot meta strip */}
+          <line x1={pad} y1={h - pad * 0.8} x2={w - pad} y2={h - pad * 0.8} stroke={fg} strokeOpacity={0.4} strokeWidth={1} />
+          <text
+            x={pad} y={h - pad * 0.4}
+            fontFamily="Fira Code, monospace"
+            fontSize={w * 0.013}
+            letterSpacing="0.12em"
+            fill={fg}
+            opacity={0.7}
+            style={{ textTransform: "uppercase" }}
+          >
+            {(s.meta || "logos.co").toUpperCase()}
+          </text>
+          <text
+            x={w - pad} y={h - pad * 0.4}
+            textAnchor="end"
+            fontFamily="Fira Code, monospace"
+            fontSize={w * 0.013}
+            letterSpacing="0.12em"
+            fill={fg}
+            opacity={0.7}
+          >
+            λ · LOGOS
+          </text>
+        </g>
+      </svg>
+    );
+  }, [s.template, s.theme, s.layout, s.eyebrow, s.headline, s.meta, w, h, isMeme]);
+
+  /* ── Downloads ── */
+  async function downloadPNG() {
+    if (isMeme) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      triggerDownload(canvas.toDataURL("image/png"), `logos-${s.template.id}.png`);
+      return;
+    }
+    if (!svgRef.current) return;
+    const xml = new XMLSerializer().serializeToString(svgRef.current);
+    const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = url;
+    await new Promise((r, j) => { img.onload = r; img.onerror = j; });
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0, w, h);
+    URL.revokeObjectURL(url);
+    triggerDownload(canvas.toDataURL("image/png"), `logos-${s.template.id}.png`);
+  }
+
+  function downloadSVG() {
+    if (isMeme || !svgRef.current) return;
+    const xml = new XMLSerializer().serializeToString(svgRef.current);
+    const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, `logos-${s.template.id}.svg`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function copyToClipboard() {
+    let canvas: HTMLCanvasElement;
+    if (isMeme) {
+      if (!canvasRef.current) return;
+      canvas = canvasRef.current;
+    } else {
+      if (!svgRef.current) return;
+      const xml = new XMLSerializer().serializeToString(svgRef.current);
+      const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = url;
+      await new Promise((r) => { img.onload = r; });
+      canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+    }
     try {
       const blob = await new Promise<Blob>((resolve) =>
         canvas.toBlob((b) => resolve(b!), "image/png")
       );
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
     } catch {
-      download();
+      downloadPNG();
     }
+  }
+
+  /* ── Randomizer ── */
+  const randomize = () => {
+    setS((prev) => ({
+      ...prev,
+      theme: randomChoice(THEMES),
+      filter: randomChoice(FILTERS).id,
+      font: randomChoice(FONTS).css,
+      fontSize: 48 + Math.floor(Math.random() * 72),
+      lambdaPos: randomChoice(LAMBDA_POSITIONS).id,
+      ...(prev.layout.id !== "meme" ? { layout: randomChoice(LAYOUTS.slice(0, 3)) } : {}),
+    }));
   };
 
-  /* ── Native share (mobile) ── */
-  const nativeShare = async () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !navigator.share) return;
+  /* ── Share ── */
+  async function nativeShare() {
     try {
-      const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob((b) => resolve(b!), "image/png")
-      );
+      let blob: Blob;
+      if (isMeme && canvasRef.current) {
+        blob = await new Promise<Blob>((r) => canvasRef.current!.toBlob((b) => r(b!), "image/png"));
+      } else {
+        return; // SVG share just opens links
+      }
       const file = new File([blob], "logos-emblem.png", { type: "image/png" });
       await navigator.share({ text: SHARE_TEXT, url: SITE_URL, files: [file] });
-    } catch {
-      // User cancelled or not supported
-    }
-  };
+    } catch { /* cancelled */ }
+  }
 
   return (
     <>
       <div className="gen">
         {/* ── Controls ── */}
-        <div className="gen__controls">
-          {/* Image */}
-          <div className="gen__field">
-            <label className="gen__field-label">Image</label>
+        <aside className="gen__controls">
+          {/* Template */}
+          <Field label="Format">
+            <select
+              value={s.template.id}
+              onChange={(e) => set("template", TEMPLATES.find((t) => t.id === e.target.value)!)}
+            >
+              {TEMPLATES.map((t) => (
+                <option key={t.id} value={t.id}>{t.label} · {t.w}×{t.h}</option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Layout */}
+          <Field label="Layout">
+            <select
+              value={s.layout.id}
+              onChange={(e) => set("layout", LAYOUTS.find((l) => l.id === e.target.value)!)}
+            >
+              {LAYOUTS.map((l) => (
+                <option key={l.id} value={l.id}>{l.label}</option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Theme */}
+          <Field label="Theme">
+            <div className="gen__swatches">
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  className={`gen__swatch${s.theme.id === t.id ? " is-active" : ""}`}
+                  onClick={() => set("theme", t)}
+                  title={t.label}
+                  style={{
+                    background: t.bg,
+                    color: t.fg,
+                    borderColor: s.theme.id === t.id ? t.fg : "transparent",
+                  }}
+                >
+                  <span style={{ color: t.accent, fontFamily: "Cormorant Garamond, serif", fontStyle: "italic", fontSize: 16 }}>λ</span>
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {/* Image upload (shows for meme layout, but always available) */}
+          <Field label="Image">
             <div
               className="gen__upload"
               onClick={() => fileRef.current?.click()}
@@ -385,152 +652,121 @@ export default function EmblemGenerator() {
                 if (file) handleFile(file);
               }}
             />
-          </div>
+          </Field>
 
-          {/* Top text */}
-          <div className="gen__field">
-            <label className="gen__field-label">Top text</label>
-            <input
-              type="text"
-              value={s.topText}
-              onChange={(e) => set("topText", e.target.value)}
-              placeholder="Top line..."
-            />
-          </div>
+          {/* Poster fields (non-meme) */}
+          {!isMeme && (
+            <>
+              <Field label="Eyebrow">
+                <input value={s.eyebrow} onChange={(e) => set("eyebrow", e.target.value)} placeholder="EYEBROW" />
+              </Field>
+              <Field label="Headline">
+                <textarea value={s.headline} onChange={(e) => set("headline", e.target.value)} placeholder="Headline" rows={3} />
+              </Field>
+            </>
+          )}
 
-          {/* Bottom text */}
-          <div className="gen__field">
-            <label className="gen__field-label">Bottom text</label>
-            <input
-              type="text"
-              value={s.bottomText}
-              onChange={(e) => set("bottomText", e.target.value)}
-              placeholder="Bottom line..."
-            />
-          </div>
-
-          {/* Font */}
-          <div className="gen__field">
-            <label className="gen__field-label">Font</label>
-            <select value={s.font} onChange={(e) => set("font", e.target.value)}>
-              {FONTS.map((f) => (
-                <option key={f.id} value={f.css}>{f.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Font size */}
-          <div className="gen__field">
-            <label className="gen__field-label">Font size ({s.fontSize}px)</label>
-            <input
-              className="gen__range"
-              type="range"
-              min={24}
-              max={160}
-              value={s.fontSize}
-              onChange={(e) => set("fontSize", Number(e.target.value))}
-            />
-          </div>
-
-          {/* Text color */}
-          <div className="gen__field">
-            <label className="gen__field-label">Text color</label>
-            <div className="gen__swatches">
-              {PALETTE.map((c) => (
-                <div
-                  key={c.hex}
-                  className={`gen__swatch${s.textColor === c.hex ? " is-active" : ""}`}
-                  style={{ background: c.hex, border: c.hex === "#f5f5ef" ? "1px solid #d6d6ce" : undefined }}
-                  title={c.name}
-                  onClick={() => set("textColor", c.hex)}
+          {/* Meme fields */}
+          {isMeme && (
+            <>
+              <Field label="Top text">
+                <input value={s.topText} onChange={(e) => set("topText", e.target.value)} placeholder="Top line..." />
+              </Field>
+              <Field label="Bottom text">
+                <input value={s.bottomText} onChange={(e) => set("bottomText", e.target.value)} placeholder="Bottom line..." />
+              </Field>
+              <Field label="Font">
+                <select value={s.font} onChange={(e) => set("font", e.target.value)}>
+                  {FONTS.map((f) => (
+                    <option key={f.id} value={f.css}>{f.label}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={`Font size (${s.fontSize}px)`}>
+                <input
+                  className="gen__range"
+                  type="range"
+                  min={24}
+                  max={160}
+                  value={s.fontSize}
+                  onChange={(e) => set("fontSize", Number(e.target.value))}
                 />
-              ))}
-            </div>
-          </div>
+              </Field>
+              <Field label="Filter">
+                <select value={s.filter} onChange={(e) => set("filter", e.target.value as FilterId)}>
+                  {FILTERS.map((f) => (
+                    <option key={f.id} value={f.id}>{f.label}</option>
+                  ))}
+                </select>
+              </Field>
+            </>
+          )}
 
-          {/* Filter */}
-          <div className="gen__field">
-            <label className="gen__field-label">Filter</label>
-            <select value={s.filter} onChange={(e) => set("filter", e.target.value as FilterId)}>
-              {FILTERS.map((f) => (
-                <option key={f.id} value={f.id}>{f.label}</option>
-              ))}
-            </select>
-          </div>
+          {/* Meta line */}
+          <Field label="Meta line">
+            <input value={s.meta} onChange={(e) => set("meta", e.target.value)} placeholder="logos.co" />
+          </Field>
 
-          {/* Emblem */}
-          <div className="gen__field">
-            <label className="gen__field-label">
-              <input
-                type="checkbox"
-                checked={s.showEmblem}
-                onChange={(e) => set("showEmblem", e.target.checked)}
-                style={{ marginRight: 6 }}
-              />
-              Lambda emblem (top-right)
-            </label>
-          </div>
-
-          {s.showEmblem && (
-            <div className="gen__field">
-              <label className="gen__field-label">Emblem color</label>
-              <div className="gen__swatches">
-                {PALETTE.map((c) => (
-                  <div
-                    key={`e-${c.hex}`}
-                    className={`gen__swatch${s.emblemColor === c.hex ? " is-active" : ""}`}
-                    style={{ background: c.hex, border: c.hex === "#f5f5ef" ? "1px solid #d6d6ce" : undefined }}
-                    title={c.name}
-                    onClick={() => set("emblemColor", c.hex)}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* Lambda position (meme only) */}
+          {isMeme && (
+            <>
+              <Field label="Lambda position">
+                <select value={s.lambdaPos} onChange={(e) => set("lambdaPos", e.target.value as LambdaPos)}>
+                  {LAMBDA_POSITIONS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                </select>
+              </Field>
+              <label className="gen__field-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="checkbox"
+                  checked={s.showLambda}
+                  onChange={(e) => set("showLambda", e.target.checked)}
+                />
+                Show lambda
+              </label>
+            </>
           )}
 
           {/* Actions */}
           <div className="gen__actions">
             <button className="gen__btn" onClick={randomize}>Mix</button>
-            <button className="gen__btn gen__btn--solid" onClick={download}>Download</button>
+            <button className="gen__btn gen__btn--solid" onClick={downloadPNG}>PNG</button>
+            {!isMeme && <button className="gen__btn" onClick={downloadSVG}>SVG</button>}
             <button className="gen__btn" onClick={copyToClipboard}>Copy</button>
           </div>
 
           {/* Share */}
-          <div className="gen__field">
-            <label className="gen__field-label">Share</label>
+          <Field label="Share">
             <div className="gen__share">
-              <button className="gen__share-btn" onClick={shareToX} title="Share to X">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-              </button>
-              <button className="gen__share-btn" onClick={shareToBluesky} title="Share to Bluesky">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.862 14.17c-.122.36-.596.586-1.186.586-.797 0-1.47-.454-2.142-1.072-.448-.412-.87-.912-1.33-.912h-.408c-.46 0-.882.5-1.33.912-.672.618-1.345 1.072-2.142 1.072-.59 0-1.064-.226-1.186-.587-.21-.624.36-1.494 1.386-2.482.684-.66 1.512-1.29 2.222-1.71.252-.15.492-.278.694-.378a4.35 4.35 0 0 1-.694-.378c-.71-.42-1.538-1.05-2.222-1.71-1.026-.988-1.596-1.858-1.386-2.482.122-.36.596-.587 1.186-.587.797 0 1.47.454 2.142 1.072.448.413.87.912 1.33.912h.408c.46 0 .882-.5 1.33-.912C13.006 7.454 13.679 7 14.476 7c.59 0 1.064.227 1.186.587.21.624-.36 1.494-1.386 2.482-.684.66-1.512 1.29-2.222 1.71a6.1 6.1 0 0 1-.694.378c.202.1.442.228.694.378.71.42 1.538 1.05 2.222 1.71 1.026.988 1.596 1.858 1.386 2.482z"/></svg>
-              </button>
-              <button className="gen__share-btn" onClick={shareToLinkedIn} title="Share to LinkedIn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              </button>
-              <button className="gen__share-btn" onClick={shareToTelegram} title="Share to Telegram">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-              </button>
-              <button className="gen__share-btn" onClick={shareToReddit} title="Share to Reddit">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/></svg>
-              </button>
+              <ShareBtn label="X" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(SHARE_TEXT)}&url=${encodeURIComponent(SITE_URL)}`, "_blank")} />
+              <ShareBtn label="Bluesky" onClick={() => window.open(`https://bsky.app/intent/compose?text=${encodeURIComponent(`${SHARE_TEXT} ${SITE_URL}`)}`, "_blank")} />
+              <ShareBtn label="LinkedIn" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(SITE_URL)}`, "_blank")} />
+              <ShareBtn label="Telegram" onClick={() => window.open(`https://t.me/share/url?url=${encodeURIComponent(SITE_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`, "_blank")} />
+              <ShareBtn label="Reddit" onClick={() => window.open(`https://reddit.com/submit?url=${encodeURIComponent(SITE_URL)}&title=${encodeURIComponent(SHARE_TEXT)}`, "_blank")} />
               {typeof navigator !== "undefined" && navigator.share && (
                 <button className="gen__share-btn gen__share-btn--native" onClick={nativeShare} title="Share with image">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                  Share...
                 </button>
               )}
             </div>
-          </div>
-        </div>
+          </Field>
+
+          <p style={{ fontSize: 11, color: "var(--fg-subtle)", margin: 0, lineHeight: 1.5 }}>
+            {isMeme
+              ? "Upload an image, add text, apply filters. Download or share."
+              : "PNG is rendered from the live SVG. For best font rendering, install Cormorant Garamond + Fira Code locally."}
+          </p>
+        </aside>
 
         {/* ── Preview ── */}
         <div className="gen__preview">
-          <div className="gen__canvas-wrap">
-            <canvas
-              ref={canvasRef}
-              width={CW}
-              height={CH}
-            />
+          <div className="gen__canvas-wrap" style={{ background: s.theme.bg }}>
+            {isMeme ? (
+              <canvas ref={canvasRef} width={w} height={h} />
+            ) : (
+              Poster
+            )}
           </div>
         </div>
       </div>
@@ -553,5 +789,23 @@ export default function EmblemGenerator() {
         </div>
       )}
     </>
+  );
+}
+
+/* ── Sub-components ── */
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="gen__field">
+      <span className="gen__field-label">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function ShareBtn({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button className="gen__share-btn" onClick={onClick} title={`Share to ${label}`}>
+      {label}
+    </button>
   );
 }
