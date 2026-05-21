@@ -1,43 +1,32 @@
-# Astro Starter Kit: Minimal
+# Logos Emblem Generator
+
+Create on-brand Logos memes, posters, and social posts. Upload or pick an image, add text, overlay the logomark.
+
+**Live:** [logos-emblem.vercel.app](https://logos-emblem.vercel.app)
+
+## Features
+
+- 120+ gallery templates (memes + Logos-flavored imagery)
+- Drag-and-drop or URL image upload
+- Webcam capture
+- Multi-line text with font, color, stroke, shadow, rotation controls
+- Floyd-Steinberg dither and grain noise filters
+- Logomark overlay with placement (top, middle, bottom-left) and color
+- Output size presets: Square, Story, Landscape, Poster A2, Portrait, HD
+- Download as PNG or share via Web Share API
+
+## Stack
+
+- [Astro](https://astro.build) static site
+- Vanilla JS with Web Components
+- Canvas 2D API
+- Bootstrap 5.3 with Logos brand overrides
+- Deployed on Vercel
+
+## Development
 
 ```sh
-npm create astro@latest -- --template minimal
+npm install
+npm run dev      # localhost:4321
+npm run build    # production build to ./dist/
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
