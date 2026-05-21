@@ -118,8 +118,8 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
    Three-column layout: title left, description center, CTAs right
    ============================================================ */
 .hero {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  justify-content: space-between;
   gap: 24px;
   width: 100%;
   padding: 0 12px;
@@ -129,7 +129,7 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   display: flex;
   flex-direction: column;
   gap: 24px;
-  min-width: 170px;
+  max-width: 500px;
 }
 .hero__back {
   display: flex;
@@ -164,12 +164,10 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   margin: 0;
   white-space: nowrap;
 }
-.hero__center {
+.hero__copy {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 393px;
-  padding-left: calc(50% - 50vw + 50vw - 50%);
 }
 .hero__desc {
   font-family: "Fira Mono", monospace;
@@ -441,12 +439,8 @@ button { font: inherit; color: inherit; background: transparent; border: 0; curs
   }
   .d2-nav__links { display: none; }
   .hero {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 24px;
-  }
-  .hero__center {
-    max-width: 100%;
-    padding-left: 0;
   }
   .gen {
     grid-template-columns: 1fr;
