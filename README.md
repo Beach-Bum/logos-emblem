@@ -1,6 +1,6 @@
 # Logos Emblem Generator
 
-Create on-brand Logos memes, posters, and social posts. Upload or pick an image, add text, overlay the logomark.
+Create Logos memes, posters, and social posts. Upload or pick an image, add text, overlay the logomark.
 
 **Live:** [logos-emblem.vercel.app](https://logos-emblem.vercel.app)
 
