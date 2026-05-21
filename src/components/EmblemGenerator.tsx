@@ -752,7 +752,7 @@ export default function EmblemGenerator() {
             </div>
           </Field>
 
-          <p style={{ fontSize: 11, color: "var(--fg-subtle)", margin: 0, lineHeight: 1.5 }}>
+          <p className="gen__help">
             {isMeme
               ? "Upload an image, add text, apply filters. Download or share."
               : "PNG is rendered from the live SVG. For best font rendering, install Cormorant Garamond + Fira Code locally."}

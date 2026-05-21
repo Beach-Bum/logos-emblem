@@ -11,20 +11,22 @@ import "../styles/global.css";
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600&family=Fira+Code:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
-    <header class="bg-header">
-      <a href="/" class="bg-header__brand">
-        <span class="bg-header__lambda" aria-hidden="true"></span>
-        <span>Logos Emblem</span>
-      </a>
-      <span class="bg-mono" style="color: var(--fg-subtle);">v0.1</span>
-    </header>
-    <main>
-      <slot />
-    </main>
+    <div class="page-wrap">
+      <header class="site-nav">
+        <a href="/" class="site-nav__brand">
+          <img src="/assets/img/logomark.svg" alt="" class="site-nav__logo" width="20" height="26" />
+          <span>Logos Emblem</span>
+        </a>
+        <span class="site-nav__ver">v0.2</span>
+      </header>
+      <main>
+        <slot />
+      </main>
+    </div>
   </body>
 </html>
